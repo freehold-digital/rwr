@@ -7,7 +7,7 @@ See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 
 ## Blueprint Structure
 
-The Git blueprint follows a specific structure to define the repositories to be cloned and managed. Here's an example of a Git blueprint in YAML format:
+Example 1: Clone and manage Git repositories with a YAML blueprint.
 
 ```yaml
 git:
@@ -33,7 +33,7 @@ The following settings are available for each repository in the Git blueprint:
 |---------|----------|-------------|
 | `name` | Yes, if `import` is not provided | A unique name for the repository |
 | `import` | Yes, if `name` is not provided | Path to import git repository definitions from another file (relative to blueprint directory) |
-| `action` | No | `clone` or `pull`. Empty or `clone` clones when `path` does not exist and pulls when it does; `pull` requires something to already be checked out at `path`. Any other value is an error |
+| `action` | No | `clone` or `pull`. Empty or `clone` clones when `path` does not exist and pulls when it does. `pull` requires something to already be checked out at `path`. Any other value is an error |
 | `url` | Yes | The URL of the Git repository to clone |
 | `branch` | No | The branch to clone (defaults to the repository's default branch) |
 | `path` | Yes | The local path where the repository should be cloned |
@@ -66,7 +66,7 @@ This allows you to maintain common repository lists separately from project-spec
 To clone private repositories, you need to provide authentication details. RWR supports two authentication methods:
 
 1. GitHub API Key: Set the `--gh-api-key` flag or configure the `repository.gh_api_token` setting in the configuration file.
-2. SSH Key: Set the `--ssh-key` flag or configure the `repository.ssh_private_key` setting in the configuration file. The SSH key should be base64 encoded.
+2. To use an SSH key, pass `--ssh-key` or set `repository.ssh_private_key` in the configuration file. Encode the key in Base64.
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # Best Practices
 
-This page outlines the best practices and recommendations for organizing blueprints, managing configurations, and keeping your system maintainable with Rinse, Wash, Repeat (RWR) when used on personal machines.
+Use these recommendations to organize blueprints and manage RWR configurations on personal machines.
 
 ## Organizing Blueprints
 
@@ -30,7 +30,7 @@ When organizing your blueprints, consider the following best practices:
 
 When managing configurations for your personal machine, consider the following best practices:
 
-1. Use variables to parameterize values that may change, such as file paths, URLs, or personal preferences.
+1. Use variables for values that can change, such as file paths, URLs, or personal preferences.
 
 2. Create separate blueprint files for different use cases or configurations (e.g., `core.yaml` for essential packages, `development.yaml` for development tools and libraries).
 
@@ -56,7 +56,7 @@ To keep your system maintainable with RWR, consider the following best practices
 
 Profiles allow you to organize and selectively install configurations based on different contexts. Consider these approaches:
 
-1. **Environment-based profiles**: Separate development, testing, and production configurations.
+1. Separate development, testing, and production configurations with environment-based profiles.
 
     ```yaml
     packages:
@@ -69,7 +69,7 @@ Profiles allow you to organize and selectively install configurations based on d
         profiles: [development]
     ```
 
-2. **Role-based profiles**: Organize tools by user roles or responsibilities.
+2. Organize tools by user role or responsibility with role-based profiles.
 
     ```yaml
     packages:
@@ -83,11 +83,11 @@ Profiles allow you to organize and selectively install configurations based on d
         profiles: [designer]
     ```
 
-3. **Use meaningful profile names**: Choose names that make sense to you and your team. There are no naming restrictions - use whatever works for your context.
+3. Choose profile names that make sense to you and your team. There are no naming restrictions.
 
-4. **Document your profiles**: Add comments explaining what each profile is intended for.
+4. Add comments explaining the purpose of each profile.
 
-5. **Test profile combinations**: Use `--dry-run` to preview what will be installed before running commands.
+5. Use `--dry-run` to preview profile combinations before applying them.
 
 ## Security Considerations
 
@@ -107,4 +107,4 @@ When working with RWR, keep the following security best practices in mind:
 
 5. Use secure communication channels (e.g., HTTPS, SSH) when accessing remote repositories or servers.
 
-By following these best practices, you can create well-organized, maintainable, and secure configurations with RWR, making it easier to manage your personal machine and test configurations safely before applying them to your local system.
+Use these recommendations to organize and secure your configuration. Test changes before applying them to your personal machine.

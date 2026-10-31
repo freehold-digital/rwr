@@ -17,16 +17,15 @@ RWR finds the Init file in this order:
 3. `init.yaml`, `init.yml`, `init.json`, then `init.toml` in the current
    directory.
 
-For 1 and 2 the path may be a **directory**, in which case RWR looks inside it
-for those four names in that order. It may also be an `https://` URL, including a
-GitHub `/blob/` URL, which RWR rewrites to the raw address. An `http://` URL is
-refused: the Init file decides everything RWR runs, so it is not fetched in
-cleartext.
+For discovery steps 1 and 2, the path can name a directory. RWR searches that directory for the four filenames in the order above. The path can also be an `https://` URL. RWR rewrites GitHub `/blob/` URLs to their raw addresses.
 
-A **GitHub shorthand** also works: `owner/repo` fetches the init file from the
-repository root on the default branch, `owner/repo@ref` pins a branch, tag or
-commit, and `owner/repo/path/to/init.yaml` (optionally with `@ref`) names the
-file explicitly:
+RWR rejects `http://` URLs because the init file controls everything it runs.
+
+GitHub shorthand supports these forms:
+
+- `owner/repo` fetches the init file from the repository root on its default branch.
+- `owner/repo@ref` pins a branch, tag, or commit.
+- `owner/repo/path/to/init.yaml` names the file explicitly, with an optional `@ref`.
 
 ```bash
 rwr all -i freehold-digital/my-blueprints
@@ -120,16 +119,11 @@ variables:
       - neovim
 ```
 
-`userDefined` is the only field you write here. The `{{ .User }}`,
-`{{ .System }}` and `{{ .Flags }}` groups are also available to blueprints, but
-RWR fills them in from the machine and from the flags you passed; they cannot be
-set from the init file, so that a blueprint cannot claim to be running as a
-different user or with different flags than it is. See
-[Variables and Templating](variables.md).
+`userDefined` is the only field you set here. Blueprints can also use the `{{ .User }}`, `{{ .System }}`, and `{{ .Flags }}` groups. RWR fills those groups from the machine and command-line flags. The init file cannot set them. A blueprint therefore cannot override the reported user or flags. See [Variables and Templating](variables.md).
 
 ## Example Init File
 
-Here's an example `init.yaml` file:
+Example 1: Define a blueprint tree in `init.yaml`.
 
 ```yaml
 blueprints:
@@ -268,4 +262,8 @@ For more information on the specific blueprint types and their configuration opt
 
 ## Credential policy
 
-`blueprints.except` lists processors excluded from full runs. Named invocations override init exclusions; CLI exclusions win. `credentialPolicy.setup` defaults to `explicit`; use `ordered` to deliberately include provider setup in full runs. `credentialPolicy.onUnavailable` defaults to `skip`, with `fail` available for strict dependencies. Trusted `credentialProviders`, `credentials` and `credentialAttachments` authorize native tasks declared in `credential_setup` blueprints. See [credentials](credentials.md).
+`blueprints.except` lists processors excluded from full runs. Named invocations override init exclusions. CLI exclusions win.
+
+`credentialPolicy.setup` defaults to `explicit`. Use `ordered` to include provider setup deliberately in full runs. `credentialPolicy.onUnavailable` defaults to `skip`. Use `fail` for strict dependencies.
+
+Trusted `credentialProviders`, `credentials`, and `credentialAttachments` authorize native tasks declared in `credential_setup` blueprints. See [credentials](credentials.md).

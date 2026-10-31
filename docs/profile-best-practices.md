@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides practical tips and examples for using profiles effectively in RWR configurations. These are suggestions based on common use cases, not rules you must follow.
+Use these optional recommendations and examples to organize profiles in RWR configurations.
 
 ## Common Use Cases
 
@@ -97,7 +97,7 @@ packages:
 
 ### Technology Stacks
 
-Group tools by the technologies you're working with.
+Group tools by the technologies you are working with.
 
 ```yaml
 packages:
@@ -162,7 +162,7 @@ packages:
 
 ## Profile Discovery
 
-Use the profiles command to understand what's available in your configuration.
+Use `rwr profiles` to inspect the profiles available in your configuration.
 
 ```bash
 # See all available profiles
@@ -262,12 +262,9 @@ packages:
 
 ### Guard Scripts for Machines That Lack the Subject
 
-Profile-gated items are opt-in: they run only when their profile is named.
-The remaining risk is a forgotten `--profile data-drives` on the one machine
-that needs it - the gated item silently does not run. A script gated behind a
-profile therefore needs to survive running on a machine that was never meant
-for it, because the inverse mistake (adding the profile to a run for a machine
-without the hardware) is just as easy.
+Profile-gated items run only when their profile is named. If you forget `--profile data-drives` on a machine that needs it, RWR silently skips the gated item.
+
+The reverse mistake is selecting a profile on a machine without the required hardware. Profile-gated scripts need to tolerate running on machines they were not intended for.
 
 The pattern is: check for the subject, and leave quietly when it is not
 there. Fail loudly only for a prerequisite the operator can fix (a missing
@@ -335,15 +332,15 @@ files:
 
 ### Profile Not Working
 
-If a profile doesn't seem to be working:
+If a profile does not seem to be working:
 
 1. Check the profile name matches exactly (case-sensitive)
 2. Verify the profile exists in your configuration
-3. Use `rwr profiles --show <profile-name>` to see what should be included
+3. Run `rwr profiles --show <profile-name>` to inspect the entries included in that profile.
 
 ### Unexpected Installations
 
-If you're getting unexpected packages:
+If you are getting unexpected packages:
 
 1. Remember base items (no profiles field, or an empty one) always apply
 2. Check if items belong to multiple profiles you activated
@@ -366,7 +363,7 @@ rwr all --profile all
 
 ### Profile Combinations
 
-Be mindful of profile combinations that might install conflicting software.
+Check profile combinations for conflicting software.
 
 ```yaml
 packages:
