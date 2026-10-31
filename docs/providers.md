@@ -343,9 +343,8 @@ Command failures never trigger an automatic retry with raw terminal access. Term
 Install/remove command steps can override the provider defaults with `elevated`
 and `escalates`. For example, AUR helper installation elevates the pacman
 prerequisite step, keeps git clone unprivileged, and marks makepkg as self-escalating.
-
-If metadata cannot
-classify a package, RWR fails safe and treats it as potentially escalating.
+If metadata cannot classify a package, RWR fails safe and treats it as
+potentially escalating.
 
 ## Best Practices
 

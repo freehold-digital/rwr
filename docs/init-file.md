@@ -4,9 +4,8 @@ The init file is the entry point RWR reads first. It selects the blueprint direc
 
 ## File Format
 
-The Init file is typically named `init.yaml`, but `init.yml`, `init.json`,
-`init.toml` and `init.cue` work as well. RWR supports YAML, JSON, TOML, and CUE
-formats for the Init file.
+The init file is typically named `init.yaml`, but `init.yml`, `init.json`,
+`init.toml` and `init.cue` work as well. RWR supports YAML, JSON, TOML, and CUE formats for the init file.
 
 ## File Location
 
@@ -14,8 +13,8 @@ RWR finds the init file in this order:
 
 1. The path given to `--init-file` / `-i`.
 2. The `repository.init-file` key in the [configuration file](cli/configuration.md).
-3. `init.yaml`, `init.yml`, `init.json`, then `init.toml` in the current
-   directory.
+3. `init.yaml`, `init.yml`, `init.json`, `init.toml`, then `init.cue` in the
+   current directory.
 
 For discovery steps 1 and 2, the path can name a directory. RWR searches that directory for the four filenames in the order above. The path can also be an `https://` URL. RWR rewrites GitHub `/blob/` URLs to their raw addresses.
 
