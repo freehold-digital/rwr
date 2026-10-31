@@ -7,7 +7,7 @@ See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 
 ## Blueprint Structure
 
-Example 1: Clone and manage Git repositories with a YAML blueprint.
+Clone and manage Git repositories:
 
 ```yaml
 git:

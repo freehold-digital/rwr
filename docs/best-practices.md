@@ -43,7 +43,7 @@ Use these recommendations to keep an RWR setup understandable as it grows. Organ
 
 - RWR withholds your GitHub token and SSH private key from blueprints. Give a credential to a blueprint only when the blueprint needs it, with the `exposeCredentials` key. Read [Credentials](credentials.md) before you use that key.
 - Keep vault item references in the init file, and reference them by name from blueprints. Blueprints select names but cannot redirect endpoints.
-- RWR removes credential values from logs. `rwr config view --show-secrets` reveals them; use it only to confirm a value, and do not keep the output.
+- RWR removes credential values from logs. `rwr config view --show-secrets` reveals them. Use it only to confirm a value, and do not keep the output.
 
 ## What belongs where
 

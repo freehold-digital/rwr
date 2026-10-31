@@ -128,9 +128,9 @@ All 12 item(s) are base items and always apply.
   blueprint tree.
 
 The command finds a blueprint's type from the directory it sits in, the same way
-a run does, so a file has to be under `packages/`, `services/`, `files/` and so
-on to be read. It only reads files whose extension matches the `format` declared
-in the init file.
+a run does. A file must therefore sit under `packages/`, `services/`, `files/`
+and so on. The command only reads files with the extension of the `format`
+declared in the init file.
 
 ## Debugging profile selection
 
@@ -209,7 +209,7 @@ rwr run files --profile work,dev
 ```
 
 `rwr run` takes exactly one processor name. There is no comma-separated list of
-processors. Use `rwr run all` to run everything; it is the same run as `rwr all`.
+processors. Use `rwr run all` to run everything. It is the same run as `rwr all`.
 
 ## Best practices
 

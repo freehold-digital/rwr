@@ -61,9 +61,7 @@ The `log` section contains settings related to logging.
 |--------|-------------|
 | `level` | Specifies the log level (debug, info, warn, error) |
 
-## Example Configuration File
-
-Example 1: Set CLI defaults in `config.yaml`.
+## Example
 
 ```yaml
 rwr:

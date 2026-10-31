@@ -24,20 +24,7 @@ requires no package manager. Profile-aware bootstrap entries honor the selected 
 
 ## Bootstrap File Structure
 
-The structure of the bootstrap file is similar to other blueprint files in RWR. It can include the following sections:
-
-- `scripts`: Preparation scripts, run first using OS tools, before package managers or vault credentials.
-- `packageManagers`: Installs package managers needed by the bootstrap packages.
-- `packages`: Defines the packages to be installed during the bootstrap process.
-- `files`: Specifies the files to be created or modified during the bootstrap process.
-- `directories`: Defines the directories to be created during the bootstrap process.
-- `git`: Specifies the Git repositories to be cloned during the bootstrap process.
-- `services`: Defines the services to be managed (started, stopped, enabled, disabled) during the bootstrap process.
-- `users`: Specifies the user accounts to be created during the bootstrap process.
-- `groups`: Defines the groups to be created during the bootstrap process.
-- `ssh_keys`: Specifies the SSH keys to be generated during the bootstrap process.
-
-Example 1: Define bootstrap tasks in `bootstrap.yaml`.
+A bootstrap file holds the same top-level keys a blueprint file can, in the processor order listed below.
 
 ```yaml
 packages:
