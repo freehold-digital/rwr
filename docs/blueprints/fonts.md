@@ -41,10 +41,9 @@ The following settings are available for the Fonts Blueprint:
 skipped.
 
 > [!NOTE]
-> Profiles work for fonts as of this release.
-> Earlier versions had no `profiles` field, so font entries ran on every machine regardless of their declarations.
+> Fonts support `profiles`.
 > The Fonts blueprint has no `import` or `interactive` field.
-> Declaring either field now causes a decode error.
+> Declaring either field causes a decode error.
 
 ## Font Processing
 

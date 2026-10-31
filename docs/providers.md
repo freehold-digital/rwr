@@ -401,20 +401,3 @@ OpenMandriva uses DNF as its package manager but has different package naming co
 ```
 
 This allows OpenMandriva users to use RWR with the DNF provider while automatically getting the correct package names for their distribution.
-
-### Benefits
-
-- Single provider file for related distributions
-- Automatic package name resolution based on detected distribution
-- Easy to extend for new distributions with naming variations
-- Maintains backward compatibility
-
-## Future Enhancements
-
-- Support for more package managers
-- Better dependency resolution
-- Repository mirroring
-- Version pinning
-- Rollback support
-- Plugin system
-- Extended alternatives system for commands and repository paths

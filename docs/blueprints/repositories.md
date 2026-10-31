@@ -51,7 +51,7 @@ RWR ignores values the provider never references. If a referenced placeholder ha
 | `import` | No | See [common fields](common-fields.md) |
 | `interactive` | No | See [common fields](common-fields.md) |
 
-Previously, RWR parsed these fields but dropped their values. It substituted only a bare `{{ .URL }}` argument. An apt add therefore wrote a file literally named `{{ .SourcesPath }}/{{ .Name }}.list`. RWR now renders every field in a provider step, so the settings above take effect.
+RWR renders every field in a provider step, so the settings above take effect.
 
 > [!WARNING]
 > `username`, `password` and `token` are passed to the package manager as

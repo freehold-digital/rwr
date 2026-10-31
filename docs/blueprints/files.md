@@ -1,6 +1,6 @@
 # The Files Blueprint
 
-The Files blueprint manages files through copy, move, delete, create, and modification actions. It also renders template files, replacing the former Templates blueprint.
+The Files blueprint manages files through copy, move, delete, create, and modification actions. It also renders template files.
 
 See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 `import`, `interactive`, and the rule that an unknown key is an error.
@@ -152,10 +152,7 @@ mode 0644 typed without quotes; write mode: "0644" for 0o644, or mode: "1204"
 for 0o1204
 ```
 
-This is the change to watch for. `mode: 644` used to decode to 0o1204 - a setuid
-mode nobody asked for - and apply it without complaint. It is now an error, and
-the message tells you what to write instead. Anything above `0o7777`, or a
-negative number, is refused the same way.
+Anything above `0o7777`, or a negative number, is refused the same way.
 
 ### TOML and setuid/setgid/sticky modes
 

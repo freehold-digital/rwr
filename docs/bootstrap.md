@@ -146,39 +146,6 @@ A marker that cannot be parsed counts as covering base entries only. This includ
 
 A bootstrap file can declare `schema_version` to override the tree-wide version in the init file.
 
-## New Features and Enhancements
-
-### Package Management
-
-- The `packages` section now supports the `names` field for installing multiple packages with the same configuration.
-- Additional arguments can be specified for package installation using the `args` field.
-
-### File Management
-
-- The `files` section now supports URL sources. RWR will download files from the specified URL before processing them.
-- If the target path does not end with `/`, RWR treats the file operation as a rename.
-
-### SSH Key Management
-
-- The `ssh_keys` section has been added to generate and manage SSH keys during the bootstrap process.
-- The `set_as_rwr_ssh_key` option allows setting a generated key as the default RWR SSH key for operations.
-- With `copy_to_github: true`, the optional `github_title` field names the key on GitHub. Without it, the machine's hostname is used.
-
-## Best Practices
-
-When defining your bootstrap file, consider the following best practices:
-
-- Keep the bootstrap file minimal and only include the essential tasks required for the initial setup.
-- Use variables and templating to make the bootstrap file more flexible and reusable across different environments.
-- Use URL sources and target-path renaming for file operations.
-- Use the `ssh_keys` section to set up necessary SSH keys, including the default RWR SSH key.
-- Test the bootstrap file thoroughly to ensure it works as expected on the target systems.
-- Document any manual steps or prerequisites that are not covered by the bootstrap file.
-
-By following these best practices, you can create a reliable and maintainable bootstrap process for your RWR-managed systems.
-
-For more information on specific blueprint types and their options, please refer to the respective documentation pages.
-
 Successful preparation scripts are recorded individually under RWR's
 `bootstrap-steps` configuration directory. Retries (including forced bootstrap)
 skip an unchanged successful script, even when a later step failed. Changes to
