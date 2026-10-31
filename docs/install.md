@@ -22,8 +22,9 @@ already writable, and reports a missing `sudo` before it downloads anything.
 `install.ps1` installs to `%ProgramFiles%\rwr` and adds that directory to the
 machine `PATH`, so it needs an elevated PowerShell.
 
-WARNING: Read a script before you run it with root or administrator permissions.
-Both scripts are in the RWR repository.
+> [!WARNING]
+> Read a script before you run it with root or administrator permissions.
+> Both scripts are in the RWR repository.
 
 ## Platforms
 
@@ -63,10 +64,11 @@ Each merge to `master` publishes a prerelease with the tag
 [`nightly`](https://github.com/freehold-digital/rwr/releases/tag/nightly). Use it to test
 a correction before the next release.
 
-WARNING: A `nightly` build is not a release. It is the master branch at the time
-of the build. The build passed CI, but nobody tested it. Use the
-[latest release](https://github.com/freehold-digital/rwr/releases/latest) for a machine
-that you depend on.
+> [!WARNING]
+> A `nightly` build is not a release. It is the master branch at the time
+> of the build. The build passed CI, but nobody tested it. Use the
+> [latest release](https://github.com/freehold-digital/rwr/releases/latest) for a machine
+> that you depend on.
 
 RWR replaces the `nightly` tag and its files at each merge. The download
 addresses stay the same, and the content changes.

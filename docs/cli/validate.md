@@ -43,8 +43,8 @@ rwr validate path/to/blueprints
 Without `--blueprints` or `--providers`, RWR chooses validation by path. It treats a directory named `providers` or a `.toml` file as providers. It treats other paths as blueprints. Each invocation validates one type, never both.
 
 Validating as blueprints needs an init file at or above the files being checked.
-Recognized names: `init.json`, `init.yaml`, `init.yml` or `init.toml`. A tree
-with no init file cannot be validated.
+Recognized names: `init.yaml`, `init.yml`, `init.json`, `init.toml`, or
+`init.cue`. A tree with no init file cannot be validated.
 
 > [!NOTE]
 > `--verbose` does not change what is checked or add per-file output. Use

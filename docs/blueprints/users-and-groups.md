@@ -135,7 +135,7 @@ the fields, and RWR warns rather than pretending it applied them:
 | `system` | **Ignored, with a warning.** UIDs and GIDs below 501 are reserved by Apple and RWR does not allocate them |
 | `expire` | **Ignored, with a warning.** A local Open Directory account has no expiration field |
 | `new_home` | The `NFSHomeDirectory` record is rewritten, but the directory's **contents are not moved**. RWR warns when it does this |
-| `remove_home` | Honoured through `sysadminctl -deleteUser` (which is also why RWR passes `-keepHome` when the flag is false). If `sysadminctl` is not available, the `dscl` fallback deletes the record only and warns that the home directory was left in place |
+| `remove_home` | Honored through `sysadminctl -deleteUser` (which is also why RWR passes `-keepHome` when the flag is false). If `sysadminctl` is not available, the `dscl` fallback deletes the record only and warns that the home directory was left in place |
 | `lock` / `unlock` | Applied with `pwpolicy -disableuser` / `-enableuser` |
 | primary group | New accounts land in `staff` (GID 20). There is no field to choose another |
 | `uid` / `gid` | Allocated from 501 upwards when not declared |

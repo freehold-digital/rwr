@@ -186,7 +186,7 @@ configurations:
 
 ## Notes
 
-* `run_once` is honoured by the dconf tool only. The other tools reconcile their settings on every run.
+* `run_once` is honored by the dconf tool only. The other tools reconcile their settings on every run.
 * The `elevated` option runs the command through sudo on Unix-like systems. On Windows it does not raise privileges - see the note above.
 * A gsettings entry that cannot apply a key does not stop the run. The failures are collected and reported at the end.
 
