@@ -215,7 +215,14 @@ func reverseGit(entry state.Entry) (string, error) {
 	if _, err := os.Stat(target); err != nil {
 		return "already absent", nil
 	}
-	dirty, err := exec.Command("git", "-C", target, "status", "--porcelain").Output() // #nosec G204 -- target comes from rwr's own journal
+	// Git environment variables inherited from a parent git process (a hook
+	// or a tool running under git) would make status resolve against the
+	// parent's repo instead of target: a hook could then delete an unrelated
+	// directory it believes is a clean worktree. GIT_AUTHOR_* and other
+	// non-repo-selection variables stay inherited.
+	command := exec.Command("git", "-C", target, "status", "--porcelain") // #nosec G204 -- target comes from rwr's own journal
+	command.Env = environWithoutRepoSelection()
+	dirty, err := command.Output()
 	if err != nil {
 		return "not a readable git worktree - not deleting", nil //nolint:nilerr // deliberate skip
 	}
@@ -223,6 +230,30 @@ func reverseGit(entry state.Entry) (string, error) {
 		return "worktree has local changes - not deleting", nil
 	}
 	return "", os.RemoveAll(target)
+}
+
+// environWithoutRepoSelection copies os.Environ minus the variables that
+// select or override a repository: GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE,
+// GIT_OBJECT_DIRECTORY, and GIT_ALTERNATE_OBJECT_DIRECTORIES.
+func environWithoutRepoSelection() []string {
+	overriding := []string{
+		"GIT_DIR=", "GIT_WORK_TREE=", "GIT_INDEX_FILE=",
+		"GIT_OBJECT_DIRECTORY=", "GIT_ALTERNATE_OBJECT_DIRECTORIES=",
+	}
+	var env []string
+	for _, value := range os.Environ() {
+		overridden := false
+		for _, key := range overriding {
+			if strings.HasPrefix(value, key) {
+				overridden = true
+				break
+			}
+		}
+		if !overridden {
+			env = append(env, value)
+		}
+	}
+	return env
 }
 
 // serviceState is the presence query reverseService consults, as a var so a
