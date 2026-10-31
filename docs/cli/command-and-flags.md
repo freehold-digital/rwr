@@ -1,10 +1,8 @@
 # Commands and Flags
 
-The Rinse, Wash, Repeat (RWR) CLI provides a set of commands and flags to manage your system's configuration. This page describes the available commands and their associated flags.
+This page lists every command and global flag, with the associated flags for each command.
 
 ## Global Flags
-
-The following flags are available for all commands:
 
 | Flag | Description |
 |------|-------------|
@@ -107,6 +105,7 @@ Run all blueprints and set up the system.
 Run only the bootstrap processor. The alias `rwr run bootstrap` works too. An explicit invocation ignores the run-once marker, so it does not need `--force-bootstrap`.
 
 RWR refreshes the marker on success and honors `--dry-run`. If the tree has no bootstrap file, RWR reports an error naming the files it searched for.
+
 ### `rwr status`
 
 Show desired-vs-actual drift without applying anything. Read-only, never
@@ -207,10 +206,6 @@ Run the fonts processor.
 Cobra's generated command. It writes a shell completion script for `bash`,
 `zsh`, `fish` or `powershell` to stdout.
 
-## Examples
-
-Here are a few examples of using the RWR CLI with different commands and flags:
-
 ```bash
 # Apply every blueprint with debug mode enabled
 rwr all --debug
@@ -227,8 +222,6 @@ rwr all --force-bootstrap
 # Apply every blueprint, with two profiles active, using a separate config
 rwr all --config ~/rwr-work --profile work --profile dev
 ```
-
-For more detailed information on each command and its usage, please refer to the specific blueprint type documentation or the [Configuration File](configuration.md) page.
 
 `rwr run configuration` applies every selected configuration tool, including
 post-login entries declared with `tool: omarchy`. See the

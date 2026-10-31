@@ -1,6 +1,6 @@
 # Users and Groups Blueprint
 
-The Users and Groups blueprint allows you to manage user accounts and groups on your system. You can create, modify, and remove users, assign them to groups, and set their properties such as password, shell, and home directory.
+The Users and Groups blueprint manages user accounts and groups on your system. You can create, modify, and remove users, assign them to groups, and set their properties such as password, shell, and home directory.
 
 ## Blueprint Structure
 

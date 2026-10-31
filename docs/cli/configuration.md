@@ -1,6 +1,6 @@
 # Configuration File
 
-The Rinse, Wash, Repeat (RWR) configuration file (`config.yaml`) is used to store settings and preferences for the RWR tool. This page describes the structure and options available in the configuration file.
+The RWR configuration file (`config.yaml`) stores local CLI settings: where your setup lives, CLI preferences, and credential defaults.
 
 ## File Location
 
@@ -82,22 +82,24 @@ RWR reads only the keys listed above.
 
 ## Modifying the Configuration File
 
-You can modify the `config.yaml` file directly using a text editor. Alternatively, you can use the `rwr config` command to interactively create or update the configuration file.
+Use `rwr config create` to write the file interactively, or edit `config.yaml` directly with a text editor.
 
 ```bash
 rwr config create
 ```
 
-This command will prompt you for the necessary settings and generate the `config.yaml` file based on your input.
-
 ## Precedence
 
-The settings in the `config.yaml` file have precedence over the default values used by RWR. However, command-line flags, when provided, will override the corresponding settings in the configuration file.
+The precedence order, highest first:
+
+1. Command-line flags
+2. Environment variables
+3. `config.yaml`
+4. Built-in defaults
 
 ## Environment Variables
 
-RWR reads the same options from the environment. An environment variable takes
-precedence over `config.yaml` but is overridden by a command-line flag.
+RWR reads the same options from the environment.
 
 The name is `RWR_` followed by the option's full key in upper case, with each
 dot **and each hyphen** replaced by the `_` character.
@@ -125,6 +127,3 @@ RWR_REPOSITORY_INIT_FILE=/path/to/init.yaml rwr all
 ## Notes
 
 - The `ssh_private_key` in the `repository` section is used as the default SSH key for RWR operations, including private git clones. This key is set when an SSH key is generated with the `set_as_rwr_ssh_key: true` option in the SSH Keys blueprint.
-- When using URL sources for files or init files, RWR will download the file from the specified URL before processing it.
-
-For more information on using the configuration file and its options, please refer to the [Commands and Flags](command-and-flags.md) and [Best Practices](../best-practices.md) guides.

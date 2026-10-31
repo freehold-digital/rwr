@@ -1,4 +1,4 @@
-# Profile System
+# Profiles
 
 Profiles group packages and configurations by environment or purpose. You can select which groups RWR applies.
 
@@ -9,20 +9,11 @@ Listing profiles does not require logging into credential services.
 
 ## Introduction
 
-Use profiles to share blueprints across work, gaming, and development setups. Each run selects the profiles needed for that setup.
+Use profiles to share blueprints across work, personal, and gaming setups. Each run selects the profiles needed for that setup.
 
-### Key Benefits
-
-- Select packages and configurations for each context.
-- Share base configurations across setups.
-- Switch between work, personal, and gaming configurations.
-- Existing configurations work without changes.
-
-## Core Concepts
-
-### The Additive Model
-
-The RWR Profile System uses an **additive model** rather than an exclusive one:
+The model is additive: items with no `profiles` field are the base and always
+apply. Naming a profile adds its items on top of the base. There is no
+subtraction or exclusion.
 
 ```text
 Items with no profiles field    →  Always installed (the "base" concept)
@@ -36,9 +27,9 @@ Items with no profiles field    →  Always installed (the "base" concept)
 > Naming a profile adds its items to the base.
 > Use `--profile all` to include everything.
 
-### Base Items vs Profile Items
+### Base items vs profile items
 
-#### Base Items (No Profiles Field)
+#### Base items (no profiles field)
 
 Items without a `profiles` field are considered "base" items and are **always installed**, regardless of which profiles are active.
 
@@ -53,9 +44,9 @@ packages:
     action: install
 ```
 
-#### Profile Items
+#### Profile items
 
-Items with a `profiles` field are **conditionally installed** when their profiles are active.
+Items with a `profiles` field apply only when their profiles are active.
 
 ```yaml
 # Profile items - conditionally installed
@@ -68,41 +59,22 @@ packages:
     action: install
 ```
 
-### User-Defined Profile Names
+### Profile names
 
-**Profile names are completely user-defined** - there are no predefined or required profile names. You have complete freedom to name profiles whatever makes sense for your setup.
+Profile names are user-defined. There are no predefined or required names. Common strategies:
 
-#### Popular Profile Naming Strategies
+| Strategy | Example values |
+|---|---|
+| Role | `work`, `personal`, `gaming` |
+| Environment | `desktop`, `laptop`, `server` |
+| Intensity | `minimal`, `standard`, `full` |
+| Context | `home`, `office`, `travel` |
 
-##### Role-Based Profiles
+### Special keywords
 
-```yaml
-profiles: ["work", "personal", "gaming"]
-```
+Only one keyword is reserved:
 
-##### Environment-Based Profiles
-
-```yaml
-profiles: ["desktop", "laptop", "server"]
-```
-
-##### Intensity-Based Profiles
-
-```yaml
-profiles: ["minimal", "standard", "full"]
-```
-
-##### Context-Based Profiles
-
-```yaml
-profiles: ["home", "office", "travel"]
-```
-
-### Special Keywords
-
-Only **one** keyword is reserved:
-
-- `all` - Installs everything regardless of profiles
+- `all` applies everything regardless of profiles
 
 "Base" describes items without a `profiles` field. It is not a profile name.
 
@@ -112,26 +84,25 @@ The command that applies blueprints is `rwr all` (everything) or
 `rwr run <processor>` (one processor). Bare `rwr` prints the help text and
 applies nothing, so `rwr --profile work` does nothing at all.
 
-### Basic Profile Commands
+### Basic profile commands
 
-#### Install Base Items Only
+Apply base items only:
 
 ```bash
 rwr all
 ```
 
-With no profile named, only base items apply: every item that carries a
-`profiles` field is skipped until you activate that profile.
+Every item that carries a `profiles` field is skipped until you activate that profile.
 
-#### Install Everything
+#### Install everything
 
 ```bash
 rwr all --profile all
 ```
 
-The special `all` profile activates every item, gated or not.
+`all` is the reserved profile name. It matches every item regardless of profiles.
 
-#### Install Base + Specific Profile
+#### Install base + specific profile
 
 ```bash
 rwr all --profile work
@@ -140,7 +111,7 @@ rwr all -p work
 
 Installs base items + items with the "work" profile.
 
-#### Install Multiple Profiles
+#### Install multiple profiles
 
 ```bash
 rwr all --profile work,gaming
@@ -151,24 +122,15 @@ rwr all -p work -p gaming
 
 Installs base items + work profile items + gaming profile items.
 
-#### Install Everything Explicitly
+### Profile discovery
 
-```bash
-rwr all --profile all
-```
-
-`all` is the reserved profile name. It matches every item regardless of profiles.
-
-### Profile Discovery
-
-#### List Available Profiles
+List the profiles a tree declares:
 
 ```bash
 rwr profiles
 ```
 
-Reads your blueprint tree and lists the profile names it declares, with the
-number of items carrying each. See [Profile CLI Commands](cli/profiles.md).
+It prints each profile name with the number of items carrying it. See [Profile CLI Commands](cli/profiles.md).
 
 ### Run Specific Processors with Profiles
 
@@ -355,65 +317,6 @@ git:
     profiles: ["gaming"]
     url: https://github.com/user/gaming-configs.git
     target: ~/.config/gaming
-```
-
-## Multi-Format Examples
-
-RWR supports YAML, JSON, TOML, and CUE formats for all configurations. Here are the same profile examples in different formats:
-
-### YAML Format
-
-```yaml
-packages:
-  - name: vim
-    action: install
-  - name: docker
-    profiles: ["work"]
-    action: install
-  - name: steam
-    profiles: ["gaming"]
-    action: install
-```
-
-### JSON Format
-
-```json
-{
-  "packages": [
-    {
-      "name": "vim",
-      "action": "install"
-    },
-    {
-      "name": "docker",
-      "profiles": ["work"],
-      "action": "install"
-    },
-    {
-      "name": "steam",
-      "profiles": ["gaming"],
-      "action": "install"
-    }
-  ]
-}
-```
-
-### TOML Format
-
-```toml
-[[packages]]
-name = "vim"
-action = "install"
-
-[[packages]]
-name = "docker"
-profiles = ["work"]
-action = "install"
-
-[[packages]]
-name = "steam"
-profiles = ["gaming"]
-action = "install"
 ```
 
 ## Real-World Scenarios
@@ -731,7 +634,7 @@ packages:
 
 ### Can I use any profile names?
 
-Yes! Profile names are completely user-defined. Use whatever makes sense for your setup.
+Yes. Profile names are user-defined. Use whatever makes sense for your setup.
 
 ### What runs without a selected profile?
 
@@ -741,7 +644,7 @@ To install base items and a profile, name it: `rwr all --profile work`. To insta
 
 ### Can an item belong to multiple profiles?
 
-Yes! Use `profiles: ["profile1", "profile2"]` to include an item in multiple profiles.
+Yes. Use `profiles: ["profile1", "profile2"]` to include an item in multiple profiles.
 
 ### Are profile names case-sensitive?
 
@@ -767,5 +670,3 @@ No. An unknown name matches nothing. Use `rwr profiles` to check.
 - [Profile Best Practices](profile-best-practices.md) - Organizational guidelines
 - [General Best Practices](best-practices.md) - Overall RWR best practices
 - [Template Variables](variables.md) - Using variables with profiles
-
-For specific blueprint types, see the respective blueprint documentation pages which include profile examples.
