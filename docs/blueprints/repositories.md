@@ -24,7 +24,7 @@ RWR ignores values the provider never references. If a referenced placeholder ha
 | Setting | Required | Description |
 |---------|----------|-------------|
 | `name` | Yes, if `import` is not provided | The name of the repository. Also names the file most providers write (`/etc/apt/sources.list.d/<name>.list`) and the keyring (`<keys_dir>/<name>.gpg`) |
-| `package_manager` | Yes | The provider that owns the repository. Supported values: `apt`, `dnf`, `pacman`, `zypper`, `apk`, `xbps`, `eopkg`, `emerge`, `slackpkg`, `brew`, `macports`, `nix`, `flatpak`, `snap`, `cargo`, `chocolatey`, `scoop`, `winget`, `mas`, `gnome-extensions`, and the AUR helpers |
+| `package_manager` | Yes | The provider that owns the repository. See [Supported Providers](../providers.md#supported-providers) for every accepted value |
 | `action` | Yes | `add` or `remove` |
 | `url` | Yes for `add` | The repository URL. A value with no scheme, or a `file://` URL, is treated as a local path. This selects the sideload steps for `snap` and `gnome-extensions` |
 | `key_url` | No | URL of the repository's signing key, downloaded to the provider's key directory (apt, dnf, zypper, apk, xbps, eopkg, slackpkg) |
