@@ -206,6 +206,8 @@ Run the fonts processor.
 Cobra's generated command. It writes a shell completion script for `bash`,
 `zsh`, `fish` or `powershell` to stdout.
 
+Common combinations:
+
 ```bash
 # Apply every blueprint with debug mode enabled
 rwr all --debug

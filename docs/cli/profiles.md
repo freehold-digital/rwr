@@ -213,13 +213,10 @@ processors. Use `rwr run all` to run everything. It is the same run as `rwr all`
 
 ## Best practices
 
-1. **Use `-p` interactively, `--profile` in scripts.** The long form reads
-   better in automation.
+1. Use `-p` interactively, `--profile` in scripts.
 2. Group related profiles in one run, such as `rwr all --profile work,dev`, instead of separate commands.
-3. **Check with `--dry-run` first.** Nothing validates a profile name for you,
-   so a dry run is how a typo gets caught.
-4. **Run `rwr profiles` in a tree you did not write** before you run anything
-   else.
+3. Check with `--dry-run` first. Nothing validates a profile name for you, so a dry run is how a typo gets caught.
+4. Run `rwr profiles` in a tree you did not write before you run anything else.
 
 ## Related Documentation
 
