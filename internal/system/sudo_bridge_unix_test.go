@@ -157,6 +157,56 @@ func TestExplicitInteractiveCommandInstallsManagedAskpass(t *testing.T) {
 	}
 }
 
+func TestOptionalSudoBridgeDoesNotRequireSudoToBeInstalled(t *testing.T) {
+	defer reporting.Set(bridgeReporter{})()
+	t.Setenv("PATH", t.TempDir())
+	command := exec.Command("/bin/sh")
+	command.Env = os.Environ()
+	bridge, err := installSudoBridge(command, types.Command{MayEscalate: true})
+	if err != nil || bridge != nil {
+		t.Fatalf("optional sudo bridge = %v, error %v; want no bridge and no error", bridge, err)
+	}
+	if _, err := installSudoBridge(command, types.Command{Elevated: true}); err == nil {
+		t.Fatal("required sudo was silently skipped")
+	}
+}
+
+func TestHeadlessSudoNeverPassesAuthenticationToTargetStdin(t *testing.T) {
+	defer reporting.Set(reporting.LogReporter{})()
+	defer BeginRun()()
+	defer SetSudoProbeForTest(func(context.Context) error { return errors.New("cold") })()
+	defer SetSudoPasswordForTest(func() ([]byte, error) { return []byte("fixture-secret"), nil })()
+	defer SetSudoValidateForTest(func(context.Context, []byte) error { return nil })()
+	dir := t.TempDir()
+	// A valid ticket or NOPASSWD policy skips reading a password, even with -S.
+	fixture := `#!/bin/sh
+case "$1" in
+  -S) shift 3 ;;
+  -n) shift ;;
+esac
+[ "$1" = -- ] || exit 2
+shift
+exec "$@"
+`
+	if err := os.WriteFile(filepath.Join(dir, "sudo"), []byte(fixture), 0700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	if err := ensureSudoCredentials(); err != nil {
+		t.Fatal(err)
+	}
+	output, err := runCommandOutput(types.Command{
+		Exec: "sh", Args: []string{"-c", `IFS= read -r supplied; printf '%s' "$supplied"`},
+		Elevated: true, Stdin: "target-input\n",
+	}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if output != "target-input" {
+		t.Fatal("sudo authentication replaced the target command's supplied stdin")
+	}
+}
+
 func TestSudoAuthenticationRecoversAfterRejectedPassword(t *testing.T) {
 	clearSudoPassword()
 	t.Cleanup(clearSudoPassword)

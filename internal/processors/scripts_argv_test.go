@@ -99,6 +99,11 @@ scripts:
 	if !rec.Calls[1].Interactive {
 		t.Fatal("explicit interactive script did not receive the terminal")
 	}
+	for _, call := range rec.Calls {
+		if !call.MayEscalate || call.Escalates || call.Elevated {
+			t.Fatalf("script must support nested sudo without preauthentication or elevation: %+v", call)
+		}
+	}
 }
 
 // The script path is passed as its own argv element, so a directory containing a

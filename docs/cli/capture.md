@@ -1,11 +1,8 @@
 # rwr capture
 
-Turn a handcrafted machine into a blueprint tree. The scan finds what you
-put there - explicitly-installed packages per manager (`pacman -Qe`,
-`brew leaves`, `cargo install --list`, …, so dependency noise never
-appears), dotfiles and `~/.config` entries minus known cache/state noise,
-enabled services, git checkouts - and a per-category form decides what to
-keep.
+Capture creates a blueprint tree from an existing machine. It scans explicitly installed packages with manager-specific commands such as `pacman -Qe`, `brew leaves`, and `cargo install --list`. These scans exclude dependencies.
+
+Capture also scans dotfiles, `~/.config` entries, enabled services, and Git checkouts. It excludes known cache and state files. A form for each category lets you choose what to keep.
 
 ```bash
 # Interactive: one selection page per category

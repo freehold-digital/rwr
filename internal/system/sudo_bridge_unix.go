@@ -70,6 +70,9 @@ func installSudoBridge(command *exec.Cmd, spec types.Command) (*sudoBridge, erro
 	}
 	sudoPath, err := exec.LookPath("sudo")
 	if err != nil {
+		if errors.Is(err, exec.ErrNotFound) && !sudoRequired(spec) {
+			return nil, nil // optional nested sudo must not require sudo to be installed
+		}
 		return nil, err
 	}
 	executable, err := os.Executable()
@@ -185,7 +188,7 @@ func installSudoBridge(command *exec.Cmd, spec types.Command) (*sudoBridge, erro
 				if err := conn.SetWriteDeadline(time.Now().Add(5 * time.Second)); err != nil {
 					return
 				}
-				input := passwordInput(password, "")
+				input := passwordInput(password)
 				defer zeroBytes(input)
 				if _, err := conn.Write(input); err != nil {
 					return

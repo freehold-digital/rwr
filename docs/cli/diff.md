@@ -3,14 +3,9 @@
 Compare what is actually on the machine against the blueprint tree, and get
 the delta as blueprint material - never an apply.
 
-The machine side comes from read-only scans: explicitly-installed packages
-per provider (`pacman -Qe`, `apt-mark showmanual`, …), operator-enabled
-services, git checkouts, and configs. The tree side is the resolved plan.
-Anything the [run journal](../state.md) shows a run applied never reports as
-hand-added - the tree may have changed since, but you didn't put it there.
-Packages and services match by name; configs and checkouts match by the path
-the journal recorded, since a blueprint entry's name has nothing to do with
-where its file lands.
+The machine side uses read-only scans of explicitly installed packages, operator-enabled services, Git checkouts, and configurations. Package scans use provider-specific commands such as `pacman -Qe` and `apt-mark showmanual`. The tree side uses the resolved plan.
+
+Diff excludes resources that the [run journal](../state.md) records as applied, even if the tree later changed. These resources were not added by hand. Packages and services match by name. Configurations and checkouts match by the recorded path, because entry names do not determine file locations.
 
 ```bash
 # The readable list: + additions (hand-done), - removals (declared, gone)
@@ -27,7 +22,4 @@ rwr diff --packages --format cue
 rwr diff --into ~/git/thefynx/rwr-blueprints/Archcraft
 ```
 
-`--into` needs a terminal; `--format` is the non-interactive path. Routed
-edits are written in the destination file's own format - run
-`rwr validate`, review, commit. Removals are reported but never
-auto-deleted from blueprints.
+`--into` requires a terminal. Use `--format` for non-interactive operation. RWR writes routed edits in the destination file's format. Run `rwr validate` before reviewing the changes. Commit them after review. RWR reports removals but never deletes blueprint entries automatically.

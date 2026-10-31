@@ -12,7 +12,7 @@ packages:
     action: install
 ```
 
-Blueprints may use YAML, JSON, TOML, or CUE. The `blueprints.format` field in
+Blueprints can use YAML, JSON, TOML, or CUE. The `blueprints.format` field in
 the init file selects the format RWR discovers for that tree.
 
 ## The init file and the blueprint tree
@@ -26,7 +26,7 @@ blueprints:
 ```
 
 `location` points to the directory RWR scans. A small tree can keep every
-resource in one file; a larger tree can use folders for operating systems,
+resource in one file. A larger tree can use folders for operating systems,
 machines, or resource types.
 
 ```text
@@ -118,8 +118,7 @@ packages:
     profiles: [development]
 ```
 
-Import paths are relative to the file that declares them. Imports may be nested;
-RWR reports missing files and circular chains during validation. See
+Import paths are relative to the file that declares them. Imports can be nested. RWR reports missing files and circular chains during validation. See
 [common fields](blueprints/common-fields.md#import) for the processors that
 support imports.
 
@@ -131,7 +130,7 @@ entries matching an active profile:
 rwr all --profile development
 ```
 
-With no `--profile` flag, RWR applies all entries, including profiled ones. Read
+With no `--profile` flag, RWR applies only the base items. Read
 [Profiles](profiles.md) before relying on profiles to narrow a run.
 
 ## Variables and CUE
@@ -151,7 +150,7 @@ The [variables and templates guide](variables.md) lists the available values.
 
 CUE blueprints add constraints and composition. RWR evaluates CUE itself, so a
 `cue` binary is not required on the target machine. CUE imports are limited to
-its built-in standard library; filesystem and network imports are refused.
+its built-in standard library. Filesystem and network imports are refused.
 
 ## Check a tree before applying it
 

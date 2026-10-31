@@ -1,15 +1,14 @@
-# Variables and Templating
+# Variables and templates
 
-Rinse, Wash, Repeat (RWR) supports the use of variables and templating in blueprints to make them more dynamic and reusable. This page explains how to use variables and templating in your RWR blueprints.
-
-## Variables
-
-Variables allow you to parameterize your blueprints and make them more flexible. RWR supports two types of variables:
+Blueprint values can come from the init file, the machine, or RWR flags. RWR
+supports two types of variables:
 
 1. User-defined variables
 2. Built-in variables
 
-### User-defined Variables
+## Variables
+
+### User-defined variables
 
 User-defined variables are specified in the init file under `variables.userDefined`.
 Read them in a blueprint as `{{ .UserDefined.<key> }}`.
@@ -39,9 +38,7 @@ packages:
 
 #### From the environment
 
-Every environment variable whose name begins with `RWR_` is also placed in
-`UserDefined`, under the name with the `RWR_` prefix removed and the rest of the
-name unchanged. `RWR_BUILD_ID=42` becomes `{{ .UserDefined.BUILD_ID }}`.
+RWR adds environment variables beginning with `RWR_` to `UserDefined`. It removes the `RWR_` prefix and leaves the rest of the name unchanged. For example, `RWR_BUILD_ID=42` becomes `{{ .UserDefined.BUILD_ID }}`.
 
 The names are case-sensitive and are not lowercased, so a variable set this way
 does not collide with a lower-case key from the init file. A key set in the
@@ -54,21 +51,15 @@ environment overwrites a key of exactly the same name from `userDefined`.
 
 #### To the environment
 
-The flow also works in the other direction: RWR exports its resolved
-configuration values into the environment of every command it spawns, as
-`RWR_VAR_<KEY>` with dots turned into underscores - `log.level` becomes
-`RWR_VAR_LOG_LEVEL`. A script run by a `scripts` blueprint can read them.
-Credentials (the GitHub token, the SSH private key) are **not** exported unless
-the init file names them under `exposeCredentials`; see
-[credentials](credentials.md).
+RWR exports resolved configuration values into each child command's environment as `RWR_VAR_<KEY>`. Dots become `_` characters, so `log.level` becomes `RWR_VAR_LOG_LEVEL`. Scripts run by a `scripts` blueprint can read these values.
 
-A credential declared in the init file's `credentials:` section is exported as
-`RWR_CRED_<NAME>` - again only when `exposeCredentials` names it - and appears
-in templates as `{{ .Credentials.<name> }}` under the same opt-in.
+RWR does not export the GitHub token or SSH private key unless the init file names them under `exposeCredentials`. See [credentials](credentials.md).
 
-### Built-in Variables
+A credential declared under `credentials:` is exported as `RWR_CRED_<NAME>` only when `exposeCredentials` names it. The same opt-in makes it available to templates as `{{ .Credentials.<name> }}`.
 
-RWR provides a set of built-in variables that can be used in your blueprints. These variables are automatically populated based on the current system and configuration.
+### Built-in variables
+
+RWR fills in these variables from the current system and configuration.
 
 | Variable | Description |
 |----------|-------------|
@@ -82,7 +73,7 @@ RWR provides a set of built-in variables that can be used in your blueprints. Th
 | `{{ .User.fullName }}` | The current user's full name |
 | `{{ .User.groupName }}` | The current user's Group Name (Linux/macOS Only) |
 | `{{ .User.home }}` | The current user's home directory |
-| `{{ .User.shell }}` | The current user's shell (e.g.; bash, zsh) |
+| `{{ .User.shell }}` | The current user's shell, such as bash or zsh |
 | `{{ .Flags.debug }}` | Current Debug Flag Setting |
 | `{{ .Flags.logLevel }}` | Current Log Level Setting |
 | `{{ .Flags.interactive }}` | Current Interactive Mode setting |
@@ -94,19 +85,16 @@ RWR provides a set of built-in variables that can be used in your blueprints. Th
 | `{{ .Flags.runOnceLocation }}` | The path of the run-once directory |
 
 > [!NOTE]
-> `{{ .Flags.ghAPIToken }}` and `{{ .Flags.sshKey }}` are withheld unless the init
-> file opts into them, because a template is written to a path the blueprint
-> itself chooses - so exposing a credential by default let any blueprint copy it
-> anywhere. If a blueprint genuinely needs one, name it under
-> `exposeCredentials`; see [credentials](credentials.md).
+> RWR withholds `{{ .Flags.ghAPIToken }}` and `{{ .Flags.sshKey }}` unless the init file opts in.
+> Templates write to blueprint-selected paths, so default access can let a blueprint copy credentials anywhere.
+> If a blueprint needs either credential, name it under `exposeCredentials`.
+> See [credentials](credentials.md).
 
 ## Templating
 
-RWR uses the Go template syntax for templating. You can use templating to conditionally include or exclude sections of your blueprints based on variable values or to generate dynamic content.
+### Conditional sections
 
-### Conditional Sections
-
-You can use the `{{if}}` and `{{end}}` directives to conditionally include or exclude sections of your blueprints.
+Read `{{if}}` and `{{end}}` to include a section only when a condition holds:
 
 Example:
 
@@ -129,7 +117,7 @@ packages:
 
 ### Looping
 
-You can use the `{{range}}` and `{{end}}` directives to read each item in a list.
+Read `{{range}}` and `{{end}}` to repeat a section for each item in a list:
 
 Only the four groups above are in scope. Put your list in `userDefined` in the
 init file, then read it:
@@ -154,8 +142,7 @@ packages:
 
 ### Functions
 
-RWR uses the Go template package and adds no functions of its own. These are the
-standard functions:
+RWR uses the Go template package and adds no functions of its own. Common ones:
 
 | Function | Description |
 |----------|-------------|
@@ -168,7 +155,7 @@ CAUTION: RWR registers no additional functions. A template that calls `default`,
 `join`, or another function from a different tool stops the run with
 `function "default" not defined`.
 
-For the full list of standard functions, read the
+Read the full list of standard functions in the
 [Go template documentation](https://golang.org/pkg/text/template/).
 
 ### Missing variables: strict at run time, lenient at validate
@@ -177,27 +164,14 @@ At **run time** a reference to a variable that does not exist is an error that
 stops the run. Nothing is ever rendered as `<no value>` and then used as a file
 path or a package name.
 
-`rwr validate` is more lenient about `UserDefined`: it cannot know which
-`RWR_*` variables you will export when you actually run, so a reference to a
-missing user-defined key renders empty and is not reported. References into the
-fixed `User`, `System` and `Flags` namespaces have no such excuse - their keys
-are known - so a typo like `{{ .User.hoem }}` is reported by `validate`.
+`rwr validate` cannot know which `RWR_*` variables will exist during a later run. Missing `UserDefined` keys therefore render empty without a report.
+
+The `User`, `System`, and `Flags` namespaces have fixed keys. RWR reports unknown references in those groups, such as `{{ .User.hoem }}`.
 
 ### Provider steps are a different namespace
 
-The four groups above (`UserDefined`, `User`, `System`, `Flags`) are the
-template scope for **blueprint files**. The steps inside a provider definition
-render against a different namespace - the fields of the repository entry being
-processed (`{{ .URL }}`, `{{ .KeyURL }}`, `{{ .Name }}`, …) or, for install
-steps, `{{ .TempDir }}`. Blueprint variables are not visible from provider
-steps, and vice versa. See [Providers](providers.md#template-variables).
+Blueprint templates use the `UserDefined`, `User`, `System`, and `Flags` groups. Provider steps use a separate namespace. Repository steps receive fields such as `{{ .URL }}`, `{{ .KeyURL }}`, and `{{ .Name }}`. Install steps can use `{{ .TempDir }}`.
 
-## Best Practices
+Blueprint variables are not visible to provider steps, or vice versa. See [Providers](providers.md#template-variables).
 
-- Use meaningful variable names that describe the purpose of the variable.
-- Keep your templates simple and readable.
-- Use variables to avoid hardcoding values in your blueprints.
-- Use conditional sections to handle differences between operating systems or configurations.
-- Test your templates thoroughly to ensure they work as expected.
-
-By leveraging variables and templating in your RWR blueprints, you can create more flexible and reusable configurations that adapt to different environments and requirements.
+### Missing variables: strict at run time, lenient at validate

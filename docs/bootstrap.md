@@ -18,26 +18,13 @@ Profile validation happens before bootstrap or package-manager installation.
 Bootstrap runs before normal credential resolution, so it can install the tools
 needed by credential sources. Preparation scripts must use OS tools and cannot
 depend on credentials that have not been resolved yet. If bootstrap itself needs
-a declared credential, explicitly give it `scope: [bootstrap]`; RWR resolves
+a declared credential, explicitly give it `scope: [bootstrap]`. RWR resolves
 those credentials before bootstrap begins. An empty package list
-requires no package manager. Profile-aware bootstrap entries honor the selected profiles; package-manager declarations apply regardless of profile.
+requires no package manager. Profile-aware bootstrap entries honor the selected profiles. Package-manager declarations apply regardless of profile.
 
 ## Bootstrap File Structure
 
-The structure of the bootstrap file is similar to other blueprint files in RWR. It can include the following sections:
-
-- `scripts`: Preparation scripts, run first using OS tools, before package managers or vault credentials.
-- `packageManagers`: Installs package managers needed by the bootstrap packages.
-- `packages`: Defines the packages to be installed during the bootstrap process.
-- `files`: Specifies the files to be created or modified during the bootstrap process.
-- `directories`: Defines the directories to be created during the bootstrap process.
-- `git`: Specifies the Git repositories to be cloned during the bootstrap process.
-- `services`: Defines the services to be managed (started, stopped, enabled, disabled) during the bootstrap process.
-- `users`: Specifies the user accounts to be created during the bootstrap process.
-- `groups`: Defines the groups to be created during the bootstrap process.
-- `ssh_keys`: Specifies the SSH keys to be generated during the bootstrap process.
-
-Here's an example of a `bootstrap.yaml` file:
+A bootstrap file holds the same top-level keys a blueprint file can, in the processor order listed below.
 
 ```yaml
 packages:
@@ -119,7 +106,7 @@ This order ensures that the necessary dependencies and prerequisites are in plac
 
 ## Conditional Execution
 
-By default, the Bootstrap Process is only executed once during the initial setup. Subsequent runs of RWR will skip the Bootstrap Process, unless explicitly specified or when a run names a profile the recorded bootstrap did not cover - in that case bootstrap re-runs so the newly named entries apply.
+By default, bootstrap runs once during initial setup. Later runs skip it unless you invoke bootstrap explicitly or select a profile missing from its recorded coverage. For an uncovered profile, RWR reruns bootstrap so the newly selected entries apply.
 
 To force the execution of the Bootstrap Process on every run, you can use the `--force-bootstrap` flag:
 
@@ -136,48 +123,15 @@ standalone command instead of re-running everything:
 rwr bootstrap
 ```
 
-An explicit invocation ignores the run-once marker (the marker exists to keep
-`rwr all` idempotent, not to refuse a direct request) and refreshes it on
-success.
+An explicit invocation ignores the run-once marker and refreshes it on success. The marker keeps `rwr all` idempotent. It does not block a direct request.
 
-The "has run" state is a marker file in the RWR configuration directory. The marker records the profiles the bootstrap covered: a later run re-runs bootstrap only when the marker is absent or does not cover a profile that run names. A marker that cannot be parsed (such as the empty marker an older rwr version wrote) counts as covering base entries only, so a bare run still skips bootstrap while any `--profile` request re-runs it. A run with `--profile all` records full coverage; runs naming specific profiles are unioned, so alternating between two profiles does not re-run bootstrap on every switch. A `--dry-run` execution does **not** write the marker, so a real run after a dry-run still performs the bootstrap.
+RWR stores bootstrap coverage in a marker file in its configuration directory. Later runs repeat bootstrap when the marker is absent or does not cover a selected profile.
 
-Like every other blueprint file, the bootstrap file may declare a
-`schema_version` at the top level to override the tree-wide version from the
-init file.
+A marker that cannot be parsed counts as covering base entries only. This includes empty markers from older RWR versions. A run without a profile still skips bootstrap. Any `--profile` request reruns it.
 
-## New Features and Enhancements
+`--profile all` records full coverage. Runs naming specific profiles add them to the recorded coverage. Switching between covered profiles does not repeat bootstrap. `--dry-run` does not write the marker, so a real run afterward still performs bootstrap.
 
-### Package Management
-
-- The `packages` section now supports the `names` field for installing multiple packages with the same configuration.
-- Additional arguments can be specified for package installation using the `args` field.
-
-### File Management
-
-- The `files` section now supports URL sources. RWR will download files from the specified URL before processing them.
-- Intelligent renaming is implemented for file operations. If the target path doesn't end with a '/', it's considered a rename operation.
-
-### SSH Key Management
-
-- The `ssh_keys` section has been added to generate and manage SSH keys during the bootstrap process.
-- The `set_as_rwr_ssh_key` option allows setting a generated key as the default RWR SSH key for operations.
-- With `copy_to_github: true`, the optional `github_title` field names the key on GitHub; without it, the machine's hostname is used.
-
-## Best Practices
-
-When defining your bootstrap file, consider the following best practices:
-
-- Keep the bootstrap file minimal and only include the essential tasks required for the initial setup.
-- Use variables and templating to make the bootstrap file more flexible and reusable across different environments.
-- Leverage the new features like URL sources and intelligent renaming for more flexible file management.
-- Use the `ssh_keys` section to set up necessary SSH keys, including the default RWR SSH key.
-- Test the bootstrap file thoroughly to ensure it works as expected on the target systems.
-- Document any manual steps or prerequisites that are not covered by the bootstrap file.
-
-By following these best practices, you can create a reliable and maintainable bootstrap process for your RWR-managed systems.
-
-For more information on specific blueprint types and their options, please refer to the respective documentation pages.
+A bootstrap file can declare `schema_version` to override the tree-wide version in the init file.
 
 Successful preparation scripts are recorded individually under RWR's
 `bootstrap-steps` configuration directory. Retries (including forced bootstrap)

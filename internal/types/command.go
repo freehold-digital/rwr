@@ -28,6 +28,10 @@ type Command struct {
 	// provider definition.
 	Escalates bool `mapstructure:"-" yaml:"-" json:"-" toml:"-"`
 
+	// MayEscalate enables managed nested sudo without warming credentials
+	// first. Ordinary scripts may call sudo, but must not prompt unless they do.
+	MayEscalate bool `mapstructure:"-" yaml:"-" json:"-" toml:"-"`
+
 	// Stdin is fed to the command on standard input. It is deliberately not a
 	// blueprint field: it exists so secrets can be handed to a tool without
 	// appearing in argv, where every local user can read them out of `ps` and
