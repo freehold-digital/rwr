@@ -191,8 +191,8 @@ Repository `add`/`remove` steps accept these actions:
 - `remove_line` - Delete the lines matching `match` from the file at `path`
 - `remove_section` - Delete the named `section` from the file at `path`
 
-A step with any other action stops the run with an error, and `rwr validate
---providers` reports it beforehand.
+A step with any other action stops the run with an error, and
+`rwr validate --providers` reports it beforehand.
 
 ### Step fields
 
