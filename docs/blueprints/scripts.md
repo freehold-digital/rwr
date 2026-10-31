@@ -239,6 +239,23 @@ scripts:
 Declaring both `elevated: true` and `asUser` runs the script elevated and
 ignores `asUser`, with a warning naming the account that was dropped.
 
+### Scripts that call sudo themselves
+
+A script does not need `elevated: true` to call `sudo` inside its own content.
+RWR installs a managed askpass bridge for every script:
+
+- The first script that invokes `sudo` asks through RWR's masked password
+  prompt if the sudo cache is cold. Later scripts, child sessions, and popup
+  terminals reuse the password the operator already typed, as long as the run
+  is active.
+- A script that never invokes `sudo` runs without asking for a password and
+  does not require `sudo` to be installed.
+- An explicit `sudo -n` inside a script stays noninteractive, as its caller
+  requested.
+- An explicitly `interactive: true` script keeps direct terminal control: a
+  `sudo` it resolves from `PATH` still uses the managed bridge, while an
+  absolute-path `sudo` prompts in the terminal that the script owns.
+
 ## Best Practices
 
 - Keep your scripts concise and focused on specific tasks.

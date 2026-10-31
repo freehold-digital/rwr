@@ -148,6 +148,14 @@ func mayPromptForSudo(cmd types.Command) bool {
 	return cmd.Elevated || cmd.AsUser != "" || cmd.Escalates || cmd.MayEscalate
 }
 
+// sudoRequired distinguishes commands RWR itself must manage authentication for
+// from commands that only gain a nested-sudo safety net. A required-command
+// bridge failure fails the command; an optional one degrades to no bridge, so
+// a script that never calls sudo still runs when askpass setup fails.
+func sudoRequired(cmd types.Command) bool {
+	return cmd.Elevated || cmd.AsUser != "" || cmd.Escalates
+}
+
 // sudoCredentialsCached reports whether sudo would run without asking.
 //
 // It never prompts. A cold result is handled separately by the controlled
@@ -571,7 +579,13 @@ func runCommand(cmd types.Command, debug bool) error {
 	setupCommandEnvironment(command, cmd)
 	bridge, bridgeErr := installSudoBridge(command, cmd)
 	if bridgeErr != nil {
-		return fmt.Errorf("sudo askpass setup: %w", bridgeErr)
+		if sudoRequired(cmd) {
+			return fmt.Errorf("sudo askpass setup: %w", bridgeErr)
+		}
+		// Optional nested sudo degrades to no bridge: the script then runs
+		// without managed askpass and only fails if it actually calls sudo.
+		log.Warnf("Sudo askpass setup failed; continuing without it: %v", bridgeErr)
+		bridge = nil
 	}
 	defer bridge.Close()
 
@@ -696,7 +710,13 @@ func runCommandOutput(cmd types.Command, debug bool) (string, error) {
 	setupCommandEnvironment(command, cmd)
 	bridge, bridgeErr := installSudoBridge(command, cmd)
 	if bridgeErr != nil {
-		return "", fmt.Errorf("sudo askpass setup: %w", bridgeErr)
+		if sudoRequired(cmd) {
+			return "", fmt.Errorf("sudo askpass setup: %w", bridgeErr)
+		}
+		// Optional nested sudo degrades to no bridge: the script then runs
+		// without managed askpass and only fails if it actually calls sudo.
+		log.Warnf("Sudo askpass setup failed; continuing without it: %v", bridgeErr)
+		bridge = nil
 	}
 	defer bridge.Close()
 

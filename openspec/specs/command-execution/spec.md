@@ -453,7 +453,13 @@ terminal access.
 
 Ordinary scripts SHALL support managed nested sudo without being elevated or
 preauthenticated. A script that never invokes sudo SHALL NOT request a sudo
-password or require sudo to be installed.
+password or require sudo to be installed. For this preauthentication
+requirement, a command marked `MayEscalate` is exempt, because its password is
+collected only when nested sudo requires it; elevated, alternate-user, and
+`Escalates` commands remain subject to managed password collection. An
+explicitly interactive script retains its terminal handoff, so a sudo prompt
+from a `sudo` found through a script-owned absolute path is visible in the
+terminal the script owns, while PATH-resolved sudo still uses managed askpass.
 
 #### Scenario: An ordinary script invokes sudo
 

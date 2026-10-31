@@ -70,7 +70,7 @@ func installSudoBridge(command *exec.Cmd, spec types.Command) (*sudoBridge, erro
 	}
 	sudoPath, err := exec.LookPath("sudo")
 	if err != nil {
-		if errors.Is(err, exec.ErrNotFound) && !spec.Elevated && spec.AsUser == "" && !spec.Escalates {
+		if errors.Is(err, exec.ErrNotFound) && !sudoRequired(spec) {
 			return nil, nil // optional nested sudo must not require sudo to be installed
 		}
 		return nil, err
