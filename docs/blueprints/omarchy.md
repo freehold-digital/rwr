@@ -193,12 +193,10 @@ files. Previous configuration contents are stored separately with mode 0600.
 Generic `rwr uninstall` lists configuration changes as not automatically
 reversible. Use explicit desired-state changes to restore settings, stock
 activation or routing. RWR does not guess old values or delete shared
-configuration. Semantic capture and diff authoring remain follow-up work.
+configuration.
 
-The adapter targets the installed Omarchy plugin catalog/list/validate,
-enable/disable/clone/remove, theme and default command contracts, structured
-`shell.json`, and Bash-launched stock idle service. Capability failures are
-reported before dependent work. Unsupported environments get no deferred login
-job or second shell process. Automated validation uses disposable files,
-command fixtures and the launcher boundary. Live visual desktop acceptance is
-separate from those tests.
+The adapter targets the installed Omarchy plugin
+catalog/list/validate, enable/disable/clone/remove, theme and default command
+contracts, structured `shell.json`, and the Bash-launched stock idle service.
+Capability failures are reported before dependent work. Unsupported environments
+get no deferred login job or second shell process.
