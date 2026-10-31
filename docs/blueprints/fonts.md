@@ -41,10 +41,9 @@ The following settings are available for the Fonts Blueprint:
 skipped.
 
 > [!NOTE]
-> Profiles work for fonts as of this release.
-> Earlier versions had no `profiles` field, so font entries ran on every machine regardless of their declarations.
+> Fonts support `profiles`.
 > The Fonts blueprint has no `import` or `interactive` field.
-> Declaring either field now causes a decode error.
+> Declaring either field causes a decode error.
 
 ## Font Processing
 
@@ -81,123 +80,8 @@ does not.
 
 ## Examples
 
-Here are some examples of using the Fonts Blueprint in YAML, JSON, and TOML formats:
-
-### Installing a Single Font
-
-#### YAML
-
-```yaml
-fonts:
-  - name: Hack
-    action: install
-    provider: nerd
-    location: user
-```
-
-#### JSON
-
-```json
-{
-  "fonts": [
-    {
-      "name": "Hack",
-      "action": "install",
-      "provider": "nerd",
-      "location": "user"
-    }
-  ]
-}
-```
-
-#### TOML
-
-```toml
-[[fonts]]
-name = "Hack"
-action = "install"
-provider = "nerd"
-location = "user"
-```
-
-### Installing Multiple Fonts
-
-#### Multiple Fonts YAML
-
-```yaml
-fonts:
-  - names:
-      - Hack
-      - SourceCodePro
-    action: install
-    provider: nerd
-    location: system
-```
-
-#### Multiple Fonts JSON
-
-```json
-{
-  "fonts": [
-    {
-      "names": ["Hack", "SourceCodePro"],
-      "action": "install",
-      "provider": "nerd",
-      "location": "system"
-    }
-  ]
-}
-```
-
-#### Multiple Fonts TOML
-
-```toml
-[[fonts]]
-names = ["Hack", "SourceCodePro"]
-action = "install"
-provider = "nerd"
-location = "system"
-```
-
-### Removing a Font
-
-#### Font Removal YAML
-
-```yaml
-fonts:
-  - name: Hack
-    action: remove
-    location: user
-```
-
-#### Font Removal JSON
-
-```json
-{
-  "fonts": [
-    {
-      "name": "Hack",
-      "action": "remove",
-      "location": "user"
-    }
-  ]
-}
-```
-
-#### Font Removal TOML
-
-```toml
-[[fonts]]
-name = "Hack"
-action = "remove"
-location = "user"
-```
-
-## Notes
+More working trees in every supported format, including JSON and TOML: [examples](../../examples/README.md).
 
 - Installing fonts system-wide (`location: system`) requires elevated privileges.
 - There is no way to install every font at once. An entry names one archive. Use `names` to list several.
-- When using the `names` field to specify multiple fonts, all listed fonts are processed with the same action and settings.
 - Installing requires network access to the GitHub API and to the nerd-fonts release assets. `fc-cache` must be on PATH for the cache refresh. A missing one is a warning, not a failure.
-
-For more information on using the Fonts Blueprint in your RWR configuration, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Best Practices](../best-practices.md) guide.

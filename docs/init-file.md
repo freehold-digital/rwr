@@ -1,21 +1,20 @@
-# Init File - The Entrypoint
+# Init file
 
-The Init file is the main entry point for your RWR blueprints. It defines the configuration settings for RWR and specifies the order of execution for the blueprints. This page describes the structure and options available in the Init file.
+The init file is the entry point RWR reads first. It selects the blueprint directory, the format, the execution order, profiles, package managers, and the credential policy.
 
 ## File Format
 
-The Init file is typically named `init.yaml`, but `init.yml`, `init.json`,
-`init.toml` and `init.cue` work as well. RWR supports YAML, JSON, TOML, and CUE
-formats for the Init file.
+The init file is typically named `init.yaml`, but `init.yml`, `init.json`,
+`init.toml` and `init.cue` work as well. RWR supports YAML, JSON, TOML, and CUE formats for the init file.
 
 ## File Location
 
-RWR finds the Init file in this order:
+RWR finds the init file in this order:
 
 1. The path given to `--init-file` / `-i`.
 2. The `repository.init-file` key in the [configuration file](cli/configuration.md).
-3. `init.yaml`, `init.yml`, `init.json`, then `init.toml` in the current
-   directory.
+3. `init.yaml`, `init.yml`, `init.json`, `init.toml`, then `init.cue` in the
+   current directory.
 
 For discovery steps 1 and 2, the path can name a directory. RWR searches that directory for the four filenames in the order above. The path can also be an `https://` URL. RWR rewrites GitHub `/blob/` URLs to their raw addresses.
 
@@ -36,9 +35,7 @@ rwr all -i freehold-digital/my-blueprints/machines/laptop.yaml
 A local path that exists always wins over shorthand interpretation, so a
 directory literally named `owner/repo` keeps working.
 
-## Init File Structure
-
-The Init file consists of the following main sections:
+## Init file structure
 
 ### `blueprints`
 
@@ -108,7 +105,7 @@ The `variables` section holds the custom variables that your blueprints can read
 
 | Field | Description | Required |
 |-------|-------------|----------|
-| `userDefined` | A map of your own variables. Each key becomes `{{ .UserDefined.<key> }}` in a blueprint. The values may be strings, numbers, lists or nested maps | No |
+| `userDefined` | A map of your own variables. Each key becomes `{{ .UserDefined.<key> }}` in a blueprint. The values can be strings, numbers, lists or nested maps | No |
 
 ```yaml
 variables:
@@ -121,9 +118,7 @@ variables:
 
 `userDefined` is the only field you set here. Blueprints can also use the `{{ .User }}`, `{{ .System }}`, and `{{ .Flags }}` groups. RWR fills those groups from the machine and command-line flags. The init file cannot set them. A blueprint therefore cannot override the reported user or flags. See [Variables and Templating](variables.md).
 
-## Example Init File
-
-Example 1: Define a blueprint tree in `init.yaml`.
+## Example
 
 ```yaml
 blueprints:
@@ -134,7 +129,7 @@ blueprints:
     - repositories
     - files
   git:
-    url: https://github.com/yourusername/rwr-blueprints.git
+    url: https://github.com/freehold-digital/rwr-blueprints.git
     branch: main
   runOnlyListed: true
 
@@ -145,53 +140,23 @@ packageManagers:
 variables:
   userDefined:
     app_version: 1.0.0
-    api_key: abc123
+    notify_email: ops@example.com
 ```
 
-In this example, the Init file specifies the format and location of the blueprint
-files and the order of execution. It also configures package managers,
-and defines custom variables. A blueprint in this tree reads them
-as `{{ .UserDefined.app_version }}` and `{{ .UserDefined.api_key }}`.
+A blueprint in this tree reads the variables as `{{ .UserDefined.app_version }}`
+and `{{ .UserDefined.notify_email }}`.
 
-### Package Manager Installation
+### Package manager installation
 
-The Init Process includes the ability to install and configure various package managers. This is particularly useful for setting up a consistent environment across different systems. Supported package managers include:
+The `packageManagers` section installs the package managers a tree needs before any blueprint runs. Supported names:
 
-#### Homebrew (brew)
+| Name | Platforms |
+|---|---|
+| `brew`, `nix`, `cargo`, `gnome-extensions` | macOS and Linux |
+| `chocolatey`, `scoop` | Windows |
+| AUR helpers: `yay`, `paru`, `trizen`, `pamac`, `aura` | Arch Linux |
 
-For macOS and Linux.
-
-#### Nix (nix)
-
-For macOS and Linux.
-
-#### Chocolatey (chocolatey)
-
-For Windows.
-
-#### Scoop (scoop)
-
-For Windows.
-
-#### AUR Helpers
-
-For Arch Linux:
-
-- Yay (yay)
-- Paru (paru)
-- Trizen (trizen)
-- Pamac (pamac)
-- Aura (aura)
-
-#### Cargo (cargo)
-
-Rust package manager.
-
-#### GNOME Extensions CLI (gnome-extensions)
-
-For managing GNOME extensions.
-
-Example configurations for package manager installation:
+Example:
 
 ```yaml
 packageManagers:
@@ -205,60 +170,6 @@ packageManagers:
   - name: gnome-extensions
     action: install
 ```
-
-```json
-{
-  "packageManagers": [
-    {
-      "name": "brew",
-      "action": "install"
-    },
-    {
-      "name": "nix",
-      "action": "install"
-    },
-    {
-      "name": "cargo",
-      "action": "install",
-      "asUser": "johndoe"
-    },
-    {
-      "name": "gnome-extensions",
-      "action": "install"
-    }
-  ]
-}
-```
-
-```toml
-[[packageManagers]]
-name = "brew"
-action = "install"
-
-[[packageManagers]]
-name = "nix"
-action = "install"
-
-[[packageManagers]]
-name = "cargo"
-action = "install"
-asUser = "johndoe"
-
-[[packageManagers]]
-name = "gnome-extensions"
-action = "install"
-```
-
-These configurations can be included in your init file to ensure that the necessary package managers are installed during the initial setup process.
-
-## Best Practices
-
-- Keep your Init file concise and organized
-- Use meaningful names for your variables
-- Store sensitive information (e.g., API keys) in environment variables or secure vaults
-- Use the `order` field to define the execution order of your blueprints explicitly
-
-For more information on the specific blueprint types and their configuration options, please refer to the respective blueprint type documentation pages.
 
 ## Credential policy
 

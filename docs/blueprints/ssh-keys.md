@@ -30,7 +30,7 @@ The following settings are available for each SSH key in the SSH Keys blueprint:
 | `name`               | Yes, if `import` is not provided      | The name of the SSH key file (e.g., `id_rsa`)                                      |
 | `import`             | Yes, if `name` is not provided | Path to import SSH key definitions from another file (relative to blueprint directory) |
 | `type`               | Yes      | The key type, passed straight to `ssh-keygen -t`. There is **no default** - omitting it makes `ssh-keygen` fail. `rwr validate` warns for anything other than `rsa`, `ed25519` or `ecdsa` |
-| `path`               | Yes      | The directory where the SSH key will be stored. There is **no default**; write it explicitly, e.g. `~/.ssh`. A leading `~` is expanded |
+| `path`               | Yes      | The directory where the SSH key will be stored. There is **no default**. Write it explicitly, for example `~/.ssh`. A leading `~` is expanded |
 | `comment`            | No       | A comment to include in the SSH key (e.g., email address)                          |
 | `no_passphrase`      | No       | Set to `true` to generate the SSH key without a passphrase. Default is `false`     |
 | `copy_to_github`     | No       | Set to `true` to copy the public key to your GitHub account. Default is `false`    |
@@ -59,19 +59,18 @@ ssh_keys:
       - work
 ```
 
-This allows you to share SSH key configurations across multiple machines.
 
 ## Generating SSH Keys
 
-When the SSH Keys blueprint is processed, RWR will generate the specified SSH keys using the provided settings. The keys will be stored in the specified `path` directory.
+RWR generates the specified SSH keys with the provided settings and stores the keys in the specified `path` directory.
 
-If `no_passphrase` is set to `true`, the SSH key will be generated without a passphrase. Otherwise, RWR will prompt you to enter a passphrase for the key.
+With `no_passphrase: true`, RWR generates the key without a passphrase. Otherwise, RWR prompts you to enter a passphrase for the key.
 
 If a key file already exists, RWR leaves it unchanged and logs a warning. RWR skips generation and continues with `copy_to_github` and `set_as_rwr_ssh_key` using the existing key.
 
 ## Copying Public Keys to GitHub
 
-If `copy_to_github` is set to `true`, RWR will attempt to copy the public key to your GitHub account.
+With `copy_to_github: true`, RWR copies the public key to your GitHub account.
 
 ### GitHub Authentication
 
@@ -140,15 +139,13 @@ If `github_title` is provided, it will be used as the title for the SSH key on G
 
 ## Setting the RWR SSH Key
 
-If `set_as_rwr_ssh_key` is set to `true`, RWR will set this key as the default SSH key for RWR operations. This key will be used for private git clones and other SSH-based operations within RWR. The private key is base64 encoded and saved to the OS keyring. If no keyring backend is available, RWR warns and falls back to the owner-only (`0600`) configuration file for compatibility with existing installations.
+If `set_as_rwr_ssh_key: true`, RWR sets this key as the default SSH key for RWR operations. This key is used for private git clones and other SSH-based operations within RWR. The private key is base64 encoded and saved to the OS keyring. If no keyring backend is available, RWR warns and falls back to the owner-only (`0600`) configuration file for compatibility with existing installations.
 
 > [!NOTE]
 > Set one key as the RWR SSH key.
 > If multiple keys are selected, RWR uses the last one processed.
 
 ## Example
-
-Example 1: Generate and manage SSH keys with a YAML blueprint.
 
 ```yaml
 ssh_keys:
@@ -168,7 +165,5 @@ ssh_keys:
     no_passphrase: false
     copy_to_github: false
 ```
-
-In this example, two SSH keys are defined: `id_rsa` and `id_ed25519`. The `id_rsa` key is generated without a passphrase, copied to GitHub with the title "My SSH Key", and set as the default RWR SSH key. The `id_ed25519` key is generated with a passphrase and not copied to GitHub or set as the RWR SSH key.
 
 See the [Blueprints Overview](../blueprints-general.md) and [Best Practices](../best-practices.md) for guidance on using SSH keys.

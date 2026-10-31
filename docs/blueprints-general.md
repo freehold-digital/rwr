@@ -130,7 +130,7 @@ entries matching an active profile:
 rwr all --profile development
 ```
 
-With no `--profile` flag, RWR applies all entries, including profiled ones. Read
+With no `--profile` flag, RWR applies only the base items. Read
 [Profiles](profiles.md) before relying on profiles to narrow a run.
 
 ## Variables and CUE

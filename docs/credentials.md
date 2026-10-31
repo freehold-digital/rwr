@@ -26,7 +26,7 @@ credentialPolicy:
 
 `setup: explicit` is the default: all runs do not onboard providers. To deliberately include setup in a full run, use `setup: ordered`, include credentials in the order, and remove its init exclusion. Consumers never trigger onboarding themselves.
 
-Declaring or exposing a credential no longer acquires it at startup. Runtime lookup is noninteractive. It never installs tools, logs in, unlocks, prompts, or saves values.
+Declaring or exposing a credential does not acquire it at startup. Runtime lookup is noninteractive. It never installs tools, logs in, unlocks, prompts, or saves values.
 
 RWR filters profiles before resolving dependencies. By default, missing values skip only dependent resources. With `onUnavailable: fail`, RWR records their failure and continues independent work. Failures in executed operations still make the run fail.
 
@@ -222,4 +222,4 @@ credentials also.
 If you must see a value in the logs, use the `--show-secrets` flag. RWR gives a
 warning while this flag is active.
 
-Bootstrap runs before credential providers. Credential templates and `requiresCredentials` are rejected in bootstrap; put those resources in regular blueprints and run credential setup separately.
+Bootstrap runs before credential providers. Credential templates and `requiresCredentials` are rejected in bootstrap. Put those resources in regular blueprints, and run credential setup separately.

@@ -1,6 +1,6 @@
 # Users and Groups Blueprint
 
-The Users and Groups blueprint allows you to manage user accounts and groups on your system. You can create, modify, and remove users, assign them to groups, and set their properties such as password, shell, and home directory.
+The Users and Groups blueprint manages user accounts and groups on your system. You can create, modify, and remove users, assign them to groups, and set their properties such as password, shell, and home directory.
 
 ## Blueprint Structure
 
@@ -135,7 +135,7 @@ the fields, and RWR warns rather than pretending it applied them:
 | `system` | **Ignored, with a warning.** UIDs and GIDs below 501 are reserved by Apple and RWR does not allocate them |
 | `expire` | **Ignored, with a warning.** A local Open Directory account has no expiration field |
 | `new_home` | The `NFSHomeDirectory` record is rewritten, but the directory's **contents are not moved**. RWR warns when it does this |
-| `remove_home` | Honoured through `sysadminctl -deleteUser` (which is also why RWR passes `-keepHome` when the flag is false). If `sysadminctl` is not available, the `dscl` fallback deletes the record only and warns that the home directory was left in place |
+| `remove_home` | Honored through `sysadminctl -deleteUser` (which is also why RWR passes `-keepHome` when the flag is false). If `sysadminctl` is not available, the `dscl` fallback deletes the record only and warns that the home directory was left in place |
 | `lock` / `unlock` | Applied with `pwpolicy -disableuser` / `-enableuser` |
 | primary group | New accounts land in `staff` (GID 20). There is no field to choose another |
 | `uid` / `gid` | Allocated from 501 upwards when not declared |
@@ -150,120 +150,7 @@ Other fields map directly to macOS account attributes:
 
 ## Examples
 
-Here are a few examples of using the Users and Groups blueprint in different formats:
-
-### YAML
-
-```yaml
-users:
-  - name: alice
-    action: create
-    password: "$6$secretpassword"
-    groups:
-      - users
-      - admin
-    shell: /bin/bash
-    home: /home/alice
-
-  - name: bob
-    action: modify
-    new_name: robert
-    new_shell: /bin/zsh
-    new_home: /home/robert
-    add_groups:
-      - developers
-
-  - name: charlie
-    action: remove
-    remove_home: true
-
-groups:
-  - name: admin
-    action: create
-
-  - name: developers
-    action: modify
-    new_name: dev_team
-```
-
-### JSON
-
-```json
-{
-  "users": [
-    {
-      "name": "david",
-      "action": "create",
-      "password": "$6$othersecretpassword",
-      "groups": [
-        "users",
-        "staff"
-      ],
-      "shell": "/bin/zsh",
-      "home": "/home/david"
-    },
-    {
-      "name": "eve",
-      "action": "modify",
-      "new_name": "evelyn",
-      "add_groups": [
-        "managers"
-      ]
-    },
-    {
-      "name": "frank",
-      "action": "remove"
-    }
-  ],
-  "groups": [
-    {
-      "name": "staff",
-      "action": "create"
-    },
-    {
-      "name": "managers",
-      "action": "modify",
-      "new_name": "management"
-    }
-  ]
-}
-```
-
-### TOML
-
-```toml
-[[users]]
-name = "carol"
-action = "create"
-password = "$6$passwordhash"
-groups = ["users", "managers"]
-shell = "/bin/fish"
-home = "/home/carol"
-
-[[users]]
-name = "carol"
-action = "modify"
-new_name = "carolyn"
-new_shell = "/bin/zsh"
-new_home = "/home/carolyn"
-add_groups = ["designers"]
-
-[[users]]
-name = "grace"
-action = "remove"
-remove_home = true
-
-[[groups]]
-name = "managers"
-action = "create"
-
-[[groups]]
-name = "designers"
-action = "modify"
-new_name = "design_team"
-```
-
-These YAML, JSON, and TOML examples define, modify, and remove users and groups.
+More working trees in every supported format, including JSON and TOML: [examples](../../examples/README.md).
 
 ## Blueprint Imports
 
@@ -292,7 +179,3 @@ groups:
   - name: local_admins
     action: create
 ```
-
-This allows you to maintain common user and group configurations separately from environment-specific ones.
-
-For more information on managing users and groups in RWR, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Best Practices](../best-practices.md) sections of the documentation.

@@ -239,6 +239,9 @@ func runScript(script types.Script, osInfo *types.OSInfo, initConfig *types.Init
 	// inheriting it here suspended the dashboard for every ordinary script and
 	// made a non-interactive hang look like the TUI had disappeared.
 	scriptCmd.Interactive = script.Interactive != nil && *script.Interactive
+	// A script can invoke sudo without declaring itself elevated. Install the
+	// bridge lazily so scripts that never escalate do not ask for a password.
+	scriptCmd.MayEscalate = true
 
 	log.Debugf("Running script command: %+v", scriptCmd)
 

@@ -24,9 +24,9 @@ RWR ignores values the provider never references. If a referenced placeholder ha
 | Setting | Required | Description |
 |---------|----------|-------------|
 | `name` | Yes, if `import` is not provided | The name of the repository. Also names the file most providers write (`/etc/apt/sources.list.d/<name>.list`) and the keyring (`<keys_dir>/<name>.gpg`) |
-| `package_manager` | Yes | The provider that owns the repository (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `xbps`, `eopkg`, `emerge`, `slackpkg`, `brew`, `macports`, `nix`, `flatpak`, `snap`, `cargo`, `chocolatey`, `scoop`, `winget`, `mas`, `gnome-extensions`, and the AUR helpers) |
+| `package_manager` | Yes | The provider that owns the repository. See [Supported Providers](../providers.md#supported-providers) for every accepted value |
 | `action` | Yes | `add` or `remove` |
-| `url` | Yes for `add` | The repository URL. A value with no scheme, or a `file://` URL, is treated as a local path - that is what selects the sideload steps for `snap` and `gnome-extensions` |
+| `url` | Yes for `add` | The repository URL. A value with no scheme, or a `file://` URL, is treated as a local path. This selects the sideload steps for `snap` and `gnome-extensions` |
 | `key_url` | No | URL of the repository's signing key, downloaded to the provider's key directory (apt, dnf, zypper, apk, xbps, eopkg, slackpkg) |
 | `key_sha256` | No | SHA-256 digest of the signing key at `key_url`. The key download is verified against it |
 | `key_id` | No | Key ID to import or delete rather than a URL (pacman family, and the `rpm --erase gpg-pubkey-<id>` step in dnf/zypper removal) |
@@ -51,7 +51,7 @@ RWR ignores values the provider never references. If a referenced placeholder ha
 | `import` | No | See [common fields](common-fields.md) |
 | `interactive` | No | See [common fields](common-fields.md) |
 
-Previously, RWR parsed these fields but dropped their values. It substituted only a bare `{{ .URL }}` argument. An apt add therefore wrote a file literally named `{{ .SourcesPath }}/{{ .Name }}.list`. RWR now renders every field in a provider step, so the settings above take effect.
+RWR renders every field in a provider step, so the settings above take effect.
 
 > [!WARNING]
 > `username`, `password` and `token` are passed to the package manager as
@@ -99,7 +99,6 @@ repositories:
       - production
 ```
 
-This allows you to maintain common repository configurations separately from environment-specific ones.
 
 ## Examples
 

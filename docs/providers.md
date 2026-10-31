@@ -6,7 +6,7 @@ A provider describes a package manager. It declares the identifying binary, dete
 
 The providers shipped with RWR are authored in **CUE** under
 `internal/system/definitions/` - the single source. The binary embeds
-those files and evaluates them at load; the schema rejects an invalid
+those files and evaluates them at load. The schema rejects an invalid
 provider (wrong action name, missing `commands.install`, a `/tmp/` staging
 path) naming the field. There is no exported or committed second
 representation.
@@ -191,8 +191,8 @@ Repository `add`/`remove` steps accept these actions:
 - `remove_line` - Delete the lines matching `match` from the file at `path`
 - `remove_section` - Delete the named `section` from the file at `path`
 
-A step with any other action stops the run with an error, and `rwr validate
---providers` reports it beforehand.
+A step with any other action stops the run with an error, and
+`rwr validate --providers` reports it beforehand.
 
 ### Step fields
 
@@ -313,7 +313,7 @@ touching the source tree:
 
 To contribute a provider to RWR itself, author it in CUE under
 `internal/system/definitions/` - the schema there documents every field
-and rejects invalid definitions. That's it: no export step, nothing else to
+and rejects invalid definitions. No export step and nothing else to
 regenerate.
 
 ### `elevated` and `escalates`
@@ -343,9 +343,8 @@ Command failures never trigger an automatic retry with raw terminal access. Term
 Install/remove command steps can override the provider defaults with `elevated`
 and `escalates`. For example, AUR helper installation elevates the pacman
 prerequisite step, keeps git clone unprivileged, and marks makepkg as self-escalating.
-
-If metadata cannot
-classify a package, RWR fails safe and treats it as potentially escalating.
+If metadata cannot classify a package, RWR fails safe and treats it as
+potentially escalating.
 
 ## Best Practices
 
@@ -401,20 +400,3 @@ OpenMandriva uses DNF as its package manager but has different package naming co
 ```
 
 This allows OpenMandriva users to use RWR with the DNF provider while automatically getting the correct package names for their distribution.
-
-### Benefits
-
-- Single provider file for related distributions
-- Automatic package name resolution based on detected distribution
-- Easy to extend for new distributions with naming variations
-- Maintains backward compatibility
-
-## Future Enhancements
-
-- Support for more package managers
-- Better dependency resolution
-- Repository mirroring
-- Version pinning
-- Rollback support
-- Plugin system
-- Extended alternatives system for commands and repository paths

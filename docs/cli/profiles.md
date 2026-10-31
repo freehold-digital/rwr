@@ -128,9 +128,9 @@ All 12 item(s) are base items and always apply.
   blueprint tree.
 
 The command finds a blueprint's type from the directory it sits in, the same way
-a run does, so a file has to be under `packages/`, `services/`, `files/` and so
-on to be read. It only reads files whose extension matches the `format` declared
-in the init file.
+a run does. A file must therefore sit under `packages/`, `services/`, `files/`
+and so on. The command only reads files with the extension of the `format`
+declared in the init file.
 
 ## Debugging profile selection
 
@@ -156,9 +156,9 @@ rwr all --dry-run --profile work,gaming
 ## Error handling
 
 RWR does **not** check the names you pass against the ones your blueprints
-declare. A misspelled profile is not an error and produces no warning - it simply
+declare. A misspelled profile is not an error and produces no warning. It
 matches nothing, and the run applies the base items only. If a run installs less
-than you expected, check the spelling against `rwr profiles`; the names are
+than you expected, check the spelling against `rwr profiles`. The names are
 case-sensitive.
 
 ## Command reference
@@ -208,18 +208,15 @@ rwr run services --profile gaming
 rwr run files --profile work,dev
 ```
 
-`rwr run` takes exactly one processor name. There is no `rwr run all` and no
-comma-separated list of processors; use `rwr all` to run everything.
+`rwr run` takes exactly one processor name. There is no comma-separated list of
+processors. Use `rwr run all` to run everything. It is the same run as `rwr all`.
 
 ## Best practices
 
-1. **Use `-p` interactively, `--profile` in scripts.** The long form reads
-   better in automation.
+1. Use `-p` interactively, `--profile` in scripts.
 2. Group related profiles in one run, such as `rwr all --profile work,dev`, instead of separate commands.
-3. **Check with `--dry-run` first.** Nothing validates a profile name for you,
-   so a dry run is how a typo gets caught.
-4. **Run `rwr profiles` in a tree you did not write** before you run anything
-   else.
+3. Check with `--dry-run` first. Nothing validates a profile name for you, so a dry run is how a typo gets caught.
+4. Run `rwr profiles` in a tree you did not write before you run anything else.
 
 ## Related Documentation
 

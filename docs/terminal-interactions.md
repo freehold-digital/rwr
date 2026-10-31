@@ -1,4 +1,7 @@
-# Terminal interactions
+## Terminal interactions
+
+This page targets contributors who write processors or credential providers.
+Operators never call these APIs directly.
 
 The dashboard owns the terminal throughout a run. All operator interaction goes
 through `internal/reporting`, so processors and credential providers share the
