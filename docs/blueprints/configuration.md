@@ -32,7 +32,7 @@ The following settings are available for every entry, whichever tool it uses:
 | `profiles` | No | Profiles this entry belongs to. Empty means it is always applied |
 | `elevated` | No | Whether to run a platform configuration command with elevated privileges (default: false). Omarchy entries must omit it |
 | `run_once` | No | dconf only: create a marker file and skip the entry on later runs (default: false) |
-| `action` | No | `set` is the only supported action; leaving it out means the same thing. Omit it on an import entry |
+| `action` | No | `set` is the only supported action. Leaving it out means the same thing. Omit it on an import entry |
 | `names` | No | Accepted for existing platform tools but **not read**. One entry is one operation. Omarchy entries reject it |
 
 The tool-specific settings are described with each tool below. Omarchy entries
@@ -41,7 +41,7 @@ resource fields.
 
 > [!NOTE]
 > Profiles work for every configuration tool. Omarchy entries also support
-> `import`; the other tools reject it. Configuration entries do not support
+> `import`. The other tools reject it. Configuration entries do not support
 > `interactive`.
 
 ## Supported Configuration Tools
@@ -76,8 +76,7 @@ desktop user and does not accept `elevated` or `run_once`.
 
 Omarchy entries can manage plugin installation and activation, targeted plugin
 and shell settings, theme selection, default applications, hooks, widgets, and
-an external screensaver launcher. They support nested, cross-format imports;
-paths resolve relative to the file that declares them. See the
+an external screensaver launcher. They support nested, cross-format imports. Paths resolve relative to the file that declares them. See the
 [Omarchy configuration tool](omarchy.md) for the complete schema and runtime
 requirements.
 
@@ -89,11 +88,7 @@ The dconf tool loads a dconf dump from a file (`dconf load /`).
 |--------|----------|-------------|
 | `file` | Yes | Path to the dconf configuration file, resolved relative to the blueprint directory |
 
-`run_once` applies to this tool: with it set, RWR writes a marker file named
-`configuration_<name>_bootstrap` into the run-once location and skips the entry
-on later runs. The marker is written only after dconf applies successfully. If
-the marker cannot be written, the configuration processor returns an error so
-the run cannot report a durable run-once result that was never recorded.
+With `run_once` set, RWR writes `configuration_<name>_bootstrap` into the run-once location after dconf applies successfully. Later runs skip the entry. If writing the marker fails, the configuration processor returns an error. The run cannot report a durable run-once result without the marker.
 
 Example:
 
@@ -115,9 +110,7 @@ The gsettings tool sets individual keys in one schema.
 | `schema` | Yes | The gsettings schema |
 | `settings` | Yes | A map of key to value. This is where the keys go - `key` and `value` are **not** read by this tool |
 
-Each key is checked with `gsettings writable` first. A key that is not writable,
-or that fails to apply, is recorded as a failure and reported at the end of the
-run; the remaining keys are still attempted.
+RWR checks each key with `gsettings writable` before applying it. RWR records unwritable keys and failed changes, then reports them at the end of the run. It still attempts the remaining keys.
 
 Values are formatted for gsettings automatically: a string is quoted, a list
 becomes `[…]`, booleans become `true`/`false`. A string that already starts with
@@ -170,18 +163,13 @@ The windows_registry tool writes a single value under `HKLM:`.
 | `type` | Yes | `string`, `expandstring`, `binary`, `dword` or `qword`. Any other value is an error |
 | `value` | Yes | The value to write |
 
-`dword` and `qword` values must be whole numbers (a numeric string is accepted);
-`binary` takes a list of byte values 0–255; `string` and `expandstring` take a
-string. A value of the wrong shape is a named error rather than garbage in the
-registry.
+`dword` and `qword` values must be whole numbers. Numeric strings are accepted. `binary` takes a list of byte values from 0 to 255. `string` and `expandstring` take a string. RWR reports an error naming a value with the wrong shape instead of writing it to the registry.
 
 > [!IMPORTANT]
 > `elevated: true` raises a UAC prompt, so the run is not unattended: someone has
 > to approve it. Run rwr from an already-elevated shell to avoid the prompt.
 
-The path, name and value are passed to PowerShell as environment variables, not
-interpolated into the command, so nothing a blueprint supplies is parsed as
-PowerShell.
+RWR passes the path, name, and value to PowerShell through environment variables. It does not interpolate them into the command. PowerShell does not parse blueprint values as code.
 
 Example:
 
@@ -200,6 +188,6 @@ configurations:
 
 * `run_once` is honoured by the dconf tool only. The other tools reconcile their settings on every run.
 * The `elevated` option runs the command through sudo on Unix-like systems. On Windows it does not raise privileges - see the note above.
-* A gsettings entry that cannot apply a key does not stop the run; the failures are collected and reported at the end.
+* A gsettings entry that cannot apply a key does not stop the run. The failures are collected and reported at the end.
 
-For more information on using the Configuration Processor in your RWR setup, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Best Practices](../best-practices.md) sections of the documentation.
+See the [Blueprints Overview](../blueprints-general.md) and [Best Practices](../best-practices.md) for configuration guidance.

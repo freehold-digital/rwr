@@ -6,14 +6,14 @@ Read [Fields Common to Every Blueprint](common-fields.md) first - it covers `pro
 
 - [Packages](packages.md) - installs and removes packages across many package managers.
 - [Repositories](repositories.md) - adds and removes package manager repositories.
-- [Files](files.md) - copies, moves, deletes, creates, and modifies files; renders templates.
-- [Directories](directories.md) - creates, deletes, copies, and moves directories; sets permissions and owner.
+- [Files](files.md) - copies, moves, deletes, creates, and modifies files. Renders templates.
+- [Directories](directories.md) - creates, deletes, copies, and moves directories. Sets permissions and owner.
 - [Configuration](configuration.md) - manages dconf/gsettings (Linux), defaults
   (macOS), the registry (Windows), and [Omarchy](omarchy.md) desktop settings.
 - [Services](services.md) - starts, stops, enables, and disables services.
 - [Git](git.md) - clones and manages Git repositories.
 - [Scripts](scripts.md) - runs custom scripts for tasks other blueprint types do not cover.
-- [SSH Keys](ssh-keys.md) - generates and manages SSH keys; can upload public keys to GitHub.
+- [SSH Keys](ssh-keys.md) - generates and manages SSH keys. Can upload public keys to GitHub.
 - [Users and Groups](users-and-groups.md) - creates, modifies, and removes user accounts and groups.
 - [Fonts](fonts.md) - installs and removes Nerd Fonts.
 - [Credentials](../credentials.md) - explicitly prepares credential providers,

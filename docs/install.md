@@ -14,10 +14,7 @@ On Windows, in a PowerShell that you started with "Run as administrator":
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/freehold-digital/rwr/refs/heads/master/install.ps1'))
 ```
 
-Each script finds the correct build for your machine, downloads `checksums.txt`
-from the same release, compares the SHA-256 of the archive against the entry for
-that file, and refuses to install if the two do not agree - or if the release
-publishes no checksum for the archive at all.
+Each script finds the correct build for your machine and downloads `checksums.txt` from the same release. It compares the archive's SHA-256 digest with the matching entry. If the digests differ or the release has no checksum for that archive, the script refuses installation.
 
 `install.sh` installs to `/usr/local/bin`, with `LICENSE` and the README under
 `/usr/local/share/doc/rwr`. It uses `sudo` only if those directories are not

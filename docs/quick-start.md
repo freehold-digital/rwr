@@ -68,8 +68,7 @@ Dry-run shows the selected operations without changing the machine.
 rwr all --init-file ./my-blueprints/init.yaml
 ```
 
-Check `rwr-was-here.txt` in your home directory. Running the same command again
-should converge on the same result rather than creating another copy.
+Check `rwr-was-here.txt` in your home directory. Rerun the command to check that it produces the same result without creating another copy.
 
 You can also inspect the run record:
 

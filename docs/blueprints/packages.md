@@ -47,7 +47,7 @@ The Packages Blueprint supports the following settings:
 | `import` | Yes, if `name` or `names` is not provided | Path to import package definitions from another file (relative to blueprint directory) |
 | `action` | Yes | `install` or `remove`. See [Actions](#actions) |
 | `package_manager` | No | The package manager to use (e.g., `apt`, `brew`, `chocolatey`) |
-| `elevated` | No | Ask for elevation on top of what the provider declares. The provider decides whether its package manager needs elevation; an entry may add it (a user-scoped manager invoked against a system path) but may not take it away |
+| `elevated` | No | Requests elevation in addition to the provider's requirements. An entry can add elevation, such as for a user-scoped manager targeting a system path. It cannot remove elevation required by the provider |
 | `args` | No | Additional arguments to pass to the package manager (as a list of strings), appended after the package name |
 | `profiles` | No | List of profiles this package belongs to. If empty, package is always installed (base item) |
 | `interactive` | No | Override global interactive mode for this package (`true`/`false`). If omitted, uses the global `--interactive` flag |
@@ -56,12 +56,9 @@ Note that you must provide either `name`, `names`, or `import` for each package 
 
 ### Package names may not begin with `-`
 
-A name starting with `-` would be read as an **option** by every package
-manager - `--allow-downgrades`, `-U <url>` - rather than as a package. RWR
-refuses such a name and records it as a failure for that entry; the rest of the
-run continues. Commands are executed as argv rather than through a shell, so
-this is not shell injection, but it would still let a blueprint change what the
-elevated package manager does.
+Package managers read names starting with `-` as options, such as `--allow-downgrades` or `-U <url>`. RWR rejects these names and records a failure for the entry. The rest of the run continues.
+
+RWR runs commands as argv, not through a shell. This is not shell injection. It can still let a blueprint change the elevated package manager's behavior.
 
 ### Actions
 
@@ -109,15 +106,11 @@ RWR ships provider definitions for:
 - Windows: `chocolatey`, `scoop`, `winget`
 - Cross-platform: `nix`, `cargo`
 
-There is no `yum` provider; use `dnf`.
+There is no `yum` provider. Use `dnf`.
 
-If `package_manager` is omitted, RWR uses the default detected for this machine
-(which honours `/etc/os-release` and, on Arch, the AUR helper preference order).
-If that one is unavailable it falls back to the alphabetically first available
-provider, so that an unqualified package does not get a different manager on
-each run. If an entry names a package manager that is not available on the
-machine, RWR records that entry as failed and continues processing entries whose
-managers are available.
+If `package_manager` is omitted, RWR uses the machine's detected default. Detection honors `/etc/os-release` and, on Arch, the AUR helper preference order. If the default is unavailable, RWR chooses the alphabetically first available provider. This keeps the manager choice consistent across runs.
+
+If an entry names an unavailable package manager, RWR records that entry as failed. It continues with entries whose managers are available.
 
 ## Examples
 
@@ -231,10 +224,10 @@ These examples demonstrate how to specify packages to be installed using differe
 
 ## Additional Notes
 
-- RWR does not check whether a package is already installed; it runs the provider's install command and lets the package manager decide. Every shipped provider's install command is idempotent for an already-installed package.
-- An individual package that fails to install or remove does not stop the run. Failures are collected and reported at the end. If the error shows that the package manager itself is unavailable, such as a locked pacman database or failed sudo authentication, RWR stops issuing package commands and reports the bounded, redacted stderr diagnostic rather than repeating the same failure for every package.
+- RWR does not check whether a package is already installed. It runs the provider's install command and lets the package manager decide. Every shipped provider's install command is idempotent for an already-installed package.
+- An individual package installation or removal failure does not stop the run. RWR collects failures and reports them at the end. If an error shows that the package manager itself is unavailable, RWR stops issuing package commands. Examples include a locked pacman database or failed sudo authentication. RWR reports a bounded, redacted stderr diagnostic instead of repeating the failure for every package.
 - Pacman installs use the existing synchronized package databases with `pacman -S --needed --noconfirm`. RWR does not refresh the databases for each package, and pacman treats already up-to-date targets as satisfied.
-- If a package entry names a package manager that is not available on the system, RWR records the entry as failed and continues with entries whose managers are available.
+- If an entry names an unavailable package manager, RWR records that entry as failed. It continues with entries whose managers are available.
 - The `args` field allows you to pass additional arguments to the package manager. This is particularly useful for package managers like Homebrew (with `--cask`), Chocolatey (with installation parameters), or apt (with `--no-install-recommends`).
 
 For more information on using the Packages Blueprint in your RWR configuration, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Commands and Flags](../cli/command-and-flags.md) pages.

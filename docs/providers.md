@@ -1,6 +1,6 @@
 # Package Manager Providers
 
-The Providers system is a flexible and extensible way to manage package managers across different platforms. A provider is a declarative description of a package manager: the binary that identifies it, the files that prove it is in use, the command templates for install/remove/update, and the steps that add or remove a repository. Blueprints say `action: install`; the provider decides what that means on this machine.
+A provider describes a package manager. It declares the identifying binary, detection files, install/remove/update command templates, and repository add/remove steps. Blueprints declare an action such as `action: install`. The provider determines how to perform it on the current machine.
 
 ## Where providers live
 
@@ -11,11 +11,13 @@ provider (wrong action name, missing `commands.install`, a `/tmp/` staging
 path) naming the field. There is no exported or committed second
 representation.
 
-RWR loads provider overrides from the filesystem in three formats: **CUE**
-(one provider document, validated against the same schema the embedded
-definitions use), **JSON** (same shape), or **TOML** (the historical
-`[provider]` layout). A filesystem provider replaces an embedded provider
-of the same name.
+RWR loads filesystem overrides in three formats:
+
+- CUE contains one provider document, checked against the embedded definitions' schema.
+- JSON uses the same shape.
+- TOML uses the historical `[provider]` layout.
+
+A filesystem provider replaces an embedded provider with the same name.
 
 ### Search paths
 
@@ -29,15 +31,11 @@ the first one that exists:
 5. macOS only: `/opt/homebrew/share/rwr/providers`,
    `/usr/local/Cellar/rwr/providers`, `/Applications/rwr/providers`
 
-The current working directory is deliberately **not** searched. A provider file
-declares `exec`, `args` and `elevated = true` and those run verbatim, so
-honouring `./providers` would hand root-level execution to any directory rwr
-happens to be run from - a cloned blueprint repo, `/tmp`, a shared downloads
-folder.
+RWR does not search the current working directory for providers. Provider files declare commands through `exec`, `args`, and `elevated = true`. RWR runs those commands verbatim.
 
-For the same reason, a provider file (or its directory) that is group- or
-world-writable is skipped with a warning; the rest of the directory still
-loads.
+Searching `./providers` can grant root-level execution to any directory where RWR runs. Examples include a cloned blueprint repository, `/tmp`, or a shared downloads folder.
+
+If a provider file or its directory is group- or world-writable, RWR skips that file with a warning. It still loads the rest of the directory.
 
 ## Provider Configuration
 
@@ -70,7 +68,7 @@ clean = "clean"     # Clean package cache
 ```
 
 `install` is the only required command. A provider that declares no `clean`
-command is simply not invoked during end-of-run cache cleaning.
+command is not invoked during end-of-run cache cleaning.
 
 `environment` is an optional table of environment variables set for every
 package command the provider runs:
@@ -169,11 +167,9 @@ args = ["{{ .TempDir }}/provider-install.sh"]
 `[[provider.remove.steps]]` uses the same three actions to uninstall the
 provider.
 
-Do not stage files at fixed `/tmp/` paths - any local user can pre-create or
-rewrite such a path between the download and the elevated step that executes
-it. `{{ .TempDir }}` renders to a per-run `0700` directory other users cannot
-reach, and the CUE schema refuses to export a shipped provider whose install
-steps mention `/tmp/`.
+Do not stage files at fixed `/tmp/` paths. Another local user can create or rewrite those paths between the download and an elevated execution step.
+
+`{{ .TempDir }}` resolves to a per-run directory with mode `0700` that other users cannot access. The CUE schema rejects exports of shipped providers whose install steps mention `/tmp/`.
 
 ## Available Actions
 
@@ -200,23 +196,20 @@ A step with any other action stops the run with an error, and `rwr validate
 
 ### Step fields
 
-Each step may carry: `action`, `exec`, `args`, `source`, `dest`, `content`,
+Each step can carry: `action`, `exec`, `args`, `source`, `dest`, `content`,
 `path`, `match`, `section`, `sha256` and `condition`.
 
-`condition` is a template that gates the step: only a step whose condition
-renders truthy runs. Conditions may reference the derived predicates -
-`HasKey`, `HasInterfaces`, `HasSlot`, `HasProxy`, `HasToken`,
-`HasAuthentication`, `RequiresAuth`, `IsCustomRegistry`, `IsOverlay`,
-`IsMainRepo`, `IsLocalFile`, `IsLocalSnap`, `IsSnapStore`, `UserMode` - plus
-the step-data fields `ResetSettings` and `URL`. A condition naming anything
-else is an error at the point the step would have run.
+`condition` is a template that controls whether a step runs. A step runs only when its condition renders truthy. Conditions can reference these derived predicates:
+
+- `HasKey`, `HasInterfaces`, `HasSlot`, `HasProxy`, `HasToken`.
+- `HasAuthentication`, `RequiresAuth`, `IsCustomRegistry`, `IsOverlay`.
+- `IsMainRepo`, `IsLocalFile`, `IsLocalSnap`, `IsSnapStore`, `UserMode`.
+
+Conditions can also reference the step-data fields `ResetSettings` and `URL`. If a condition names anything else, RWR reports an error when it reaches the step.
 
 ## Template Variables
 
-Every templated field of a step is rendered - `source`, `dest`, `exec`,
-`content`, `path`, `match`, `section`, `sha256` and each entry of `args` - with
-`missingkey=error`, so a placeholder rwr cannot fill is reported rather than
-written to disk as literal text.
+RWR renders every templated step field with `missingkey=error`. The fields are `source`, `dest`, `exec`, `content`, `path`, `match`, `section`, `sha256`, and every entry in `args`. If RWR cannot fill a placeholder, it reports an error instead of writing the literal placeholder to disk.
 
 Repository steps render against the repository entry being processed:
 
@@ -234,7 +227,7 @@ Repository steps render against the repository entry being processed:
 - `{{ .PackageManager }}`, `{{ .Action }}` - The entry's own manager and action
 - `{{ .OverlayPath }}`, `{{ .SyncType }}`, `{{ .SHA256 }}` - Portage/nix
   overlay fields
-- `{{ .ProxyURL }}` - Proxy snapd should route through
+- `{{ .ProxyURL }}`: Proxy for snapd traffic.
 - `{{ .UUID }}`, `{{ .ExtensionID }}` - GNOME extension identifiers
 - `{{ .Interface }}`, `{{ .Slot }}`, `{{ .ResetSettings }}` - Snap interface
   wiring and GNOME extension settings reset
@@ -331,31 +324,21 @@ other.
 `elevated = true` means **RWR** runs the provider under sudo. Use it for
 system-wide package managers such as `pacman` or `apt`.
 
-`escalates = true` means the provider **calls sudo itself** while RWR runs it
-unprivileged. AUR helpers such as yay and paru use this flag. Homebrew also needs it: it refuses to run as root, so it must have
-`elevated = false`, and a cask install still shells out to sudo to write into
-`/Applications`.
+`escalates = true` declares that a provider calls sudo while RWR runs it unprivileged. AUR helpers such as yay and paru use this flag. Homebrew also needs it.
 
-That distinction matters because of where the password prompt goes. RWR
-captures a command's output through pipes, but sudo reads its password from
-`/dev/tty` instead - so a prompt from a provider RWR did not know would
-escalate is invisible under the dashboard, and the run hangs on a password
-nobody was asked for.
+Homebrew refuses to run as root, so it must use `elevated = false`. Cask installation still calls sudo to write into `/Applications`.
 
-For Homebrew, RWR narrows the provider-wide declaration to cask operations using
-explicit `--cask` or local `brew info --json=v2` metadata. Formula operations
-remain captured in the TUI. When an operation really may need sudo and
-credentials are not cached, RWR collects the masked password inside the TUI;
-headless runs fall back to a masked terminal prompt. RWR validates sudo
-before running the actual command captured inside the TUI. Nested sudo requests
-use a command-scoped askpass bridge, including when the sudo ticket expires or
-is not shared with a child process. Passwords travel through private sockets and
-sudo's askpass stdout, never through environment variables, arguments, or files.
-The bridge authenticates the helper using its kernel-reported user and the
-command's isolated process session; no capability token is passed to children.
-Failed authentication allows up to three masked attempts. Cancelling the command closes
-the bridge and pending prompts. Command failures never automatically retry with
-raw terminal access; terminal interaction must be explicitly requested.
+RWR captures command output through pipes, but sudo normally reads its password from `/dev/tty`. If RWR does not know a provider needs sudo, the password prompt can remain hidden under the dashboard. The run then waits for a password the user cannot see.
+
+For Homebrew, RWR narrows the provider-wide declaration to cask operations using explicit `--cask` or local `brew info --json=v2` metadata. Formula operations remain captured in the TUI.
+
+If an operation can need sudo and credentials are not cached, RWR collects the password through a masked TUI prompt. Headless runs fall back to a masked terminal prompt. RWR validates sudo before running the command inside the TUI.
+
+Nested sudo requests use a command-scoped askpass bridge. This includes expired sudo tickets and tickets not shared with child processes. Passwords travel through private sockets and sudo's askpass stdout, never through environment variables, arguments, or files.
+
+The bridge authenticates the helper through its kernel-reported user and the command's isolated process session. Children receive no capability token. Failed authentication permits up to three masked attempts. Cancelling the command closes the bridge and pending prompts.
+
+Command failures never trigger an automatic retry with raw terminal access. Terminal interaction requires an explicit request.
 
 Install/remove command steps can override the provider defaults with `elevated`
 and `escalates`. For example, AUR helper installation elevates the pacman
@@ -380,7 +363,7 @@ classify a package, RWR fails safe and treats it as potentially escalating.
 
 ## Distribution-Specific Alternatives
 
-Some package managers are used across multiple distributions but may have different package names for the same functionality. RWR supports distribution-specific alternatives to handle these differences without requiring separate provider files.
+Package managers used across distributions can use different package names for the same functionality. RWR supports distribution-specific alternatives within one provider file.
 
 ### How Alternatives Work
 

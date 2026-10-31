@@ -37,7 +37,7 @@ The structure of the bootstrap file is similar to other blueprint files in RWR. 
 - `groups`: Defines the groups to be created during the bootstrap process.
 - `ssh_keys`: Specifies the SSH keys to be generated during the bootstrap process.
 
-Here's an example of a `bootstrap.yaml` file:
+Example 1: Define bootstrap tasks in `bootstrap.yaml`.
 
 ```yaml
 packages:
@@ -119,7 +119,7 @@ This order ensures that the necessary dependencies and prerequisites are in plac
 
 ## Conditional Execution
 
-By default, the Bootstrap Process is only executed once during the initial setup. Subsequent runs of RWR will skip the Bootstrap Process, unless explicitly specified or when a run names a profile the recorded bootstrap did not cover - in that case bootstrap re-runs so the newly named entries apply.
+By default, bootstrap runs once during initial setup. Later runs skip it unless you invoke bootstrap explicitly or select a profile missing from its recorded coverage. For an uncovered profile, RWR reruns bootstrap so the newly selected entries apply.
 
 To force the execution of the Bootstrap Process on every run, you can use the `--force-bootstrap` flag:
 
@@ -136,15 +136,15 @@ standalone command instead of re-running everything:
 rwr bootstrap
 ```
 
-An explicit invocation ignores the run-once marker (the marker exists to keep
-`rwr all` idempotent, not to refuse a direct request) and refreshes it on
-success.
+An explicit invocation ignores the run-once marker and refreshes it on success. The marker keeps `rwr all` idempotent. It does not block a direct request.
 
-The "has run" state is a marker file in the RWR configuration directory. The marker records the profiles the bootstrap covered: a later run re-runs bootstrap only when the marker is absent or does not cover a profile that run names. A marker that cannot be parsed (such as the empty marker an older rwr version wrote) counts as covering base entries only, so a bare run still skips bootstrap while any `--profile` request re-runs it. A run with `--profile all` records full coverage; runs naming specific profiles are unioned, so alternating between two profiles does not re-run bootstrap on every switch. A `--dry-run` execution does **not** write the marker, so a real run after a dry-run still performs the bootstrap.
+RWR stores bootstrap coverage in a marker file in its configuration directory. Later runs repeat bootstrap when the marker is absent or does not cover a selected profile.
 
-Like every other blueprint file, the bootstrap file may declare a
-`schema_version` at the top level to override the tree-wide version from the
-init file.
+A marker that cannot be parsed counts as covering base entries only. This includes empty markers from older RWR versions. A run without a profile still skips bootstrap. Any `--profile` request reruns it.
+
+`--profile all` records full coverage. Runs naming specific profiles add them to the recorded coverage. Switching between covered profiles does not repeat bootstrap. `--dry-run` does not write the marker, so a real run afterward still performs bootstrap.
+
+A bootstrap file can declare `schema_version` to override the tree-wide version in the init file.
 
 ## New Features and Enhancements
 
@@ -156,13 +156,13 @@ init file.
 ### File Management
 
 - The `files` section now supports URL sources. RWR will download files from the specified URL before processing them.
-- Intelligent renaming is implemented for file operations. If the target path doesn't end with a '/', it's considered a rename operation.
+- If the target path does not end with `/`, RWR treats the file operation as a rename.
 
 ### SSH Key Management
 
 - The `ssh_keys` section has been added to generate and manage SSH keys during the bootstrap process.
 - The `set_as_rwr_ssh_key` option allows setting a generated key as the default RWR SSH key for operations.
-- With `copy_to_github: true`, the optional `github_title` field names the key on GitHub; without it, the machine's hostname is used.
+- With `copy_to_github: true`, the optional `github_title` field names the key on GitHub. Without it, the machine's hostname is used.
 
 ## Best Practices
 
@@ -170,7 +170,7 @@ When defining your bootstrap file, consider the following best practices:
 
 - Keep the bootstrap file minimal and only include the essential tasks required for the initial setup.
 - Use variables and templating to make the bootstrap file more flexible and reusable across different environments.
-- Leverage the new features like URL sources and intelligent renaming for more flexible file management.
+- Use URL sources and target-path renaming for file operations.
 - Use the `ssh_keys` section to set up necessary SSH keys, including the default RWR SSH key.
 - Test the bootstrap file thoroughly to ensure it works as expected on the target systems.
 - Document any manual steps or prerequisites that are not covered by the bootstrap file.
