@@ -32,7 +32,7 @@ When managing configurations for your personal machine, consider the following b
 
 1. Use variables for values that can change, such as file paths, URLs, or personal preferences.
 
-2. Create separate blueprint files for different use cases or configurations (e.g., `core.yaml` for essential packages, `development.yaml` for development tools and libraries).
+2. Create separate blueprint files for different use cases. For example, keep essential packages in `core.yaml` and development tools in `development.yaml`.
 
 3. Use a version control system (e.g., Git) to track changes to your blueprints and maintain a history of your configurations.
 

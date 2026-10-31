@@ -156,9 +156,9 @@ rwr all --dry-run --profile work,gaming
 ## Error handling
 
 RWR does **not** check the names you pass against the ones your blueprints
-declare. A misspelled profile is not an error and produces no warning - it simply
+declare. A misspelled profile is not an error and produces no warning. It
 matches nothing, and the run applies the base items only. If a run installs less
-than you expected, check the spelling against `rwr profiles`; the names are
+than you expected, check the spelling against `rwr profiles`. The names are
 case-sensitive.
 
 ## Command reference
@@ -208,8 +208,8 @@ rwr run services --profile gaming
 rwr run files --profile work,dev
 ```
 
-`rwr run` takes exactly one processor name. There is no `rwr run all` and no
-comma-separated list of processors; use `rwr all` to run everything.
+`rwr run` takes exactly one processor name. There is no comma-separated list of
+processors. Use `rwr run all` to run everything; it is the same run as `rwr all`.
 
 ## Best practices
 

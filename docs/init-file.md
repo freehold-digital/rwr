@@ -108,7 +108,7 @@ The `variables` section holds the custom variables that your blueprints can read
 
 | Field | Description | Required |
 |-------|-------------|----------|
-| `userDefined` | A map of your own variables. Each key becomes `{{ .UserDefined.<key> }}` in a blueprint. The values may be strings, numbers, lists or nested maps | No |
+| `userDefined` | A map of your own variables. Each key becomes `{{ .UserDefined.<key> }}` in a blueprint. The values can be strings, numbers, lists or nested maps | No |
 
 ```yaml
 variables:

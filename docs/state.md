@@ -1,8 +1,8 @@
 # Run records
 
 Every real run (`rwr all`, `rwr run <processor>`) leaves a record of what it
-applied: one JSON file per run under `<configdir>/state/runs/`, plus a
-`latest` file naming the newest one. Dry runs write nothing.
+applied. The record is one JSON file per run under `<configdir>/state/runs/`,
+plus a `latest` file naming the newest one. Dry runs write nothing.
 
 The record is evidence, not desired state. Blueprints define the desired machine state. `rwr status` uses the record to recognize files RWR wrote. `rwr uninstall` uses it to reverse recorded changes.
 

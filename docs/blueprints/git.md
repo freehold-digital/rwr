@@ -36,7 +36,7 @@ The following settings are available for each repository in the Git blueprint:
 | `action` | No | `clone` or `pull`. Empty or `clone` clones when `path` does not exist and pulls when it does. `pull` requires something to already be checked out at `path`. Any other value is an error |
 | `url` | Yes | The URL of the Git repository to clone |
 | `branch` | No | The branch to clone (defaults to the repository's default branch) |
-| `path` | Yes | The local path where the repository should be cloned |
+| `path` | Yes | The local path where the repository will be cloned |
 | `private` | No | Indicates whether the repository is private (defaults to `false`) |
 | `profiles` | No | List of profiles this repository belongs to. If empty, repository is always cloned (base item) |
 | `interactive` | No | Accepted by the schema but **not read** by the git processor: clones and pulls run the same way whatever it is set to |

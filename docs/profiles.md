@@ -180,17 +180,8 @@ rwr run files --profile work,dev
 
 ## Configuration Examples
 
-The `profiles` field is available on packages, repositories, files, templates,
-directories, services, users, groups, git repositories, scripts and SSH keys.
-
-> [!IMPORTANT]
-> **Fonts and configuration blueprints do not support `profiles`.** Blueprints
-> decode strictly, so a `profiles` key in a `fonts/` or `configuration/`
-> blueprint is an error:
->
-> ```text
-> field profiles not found in type types.Font
-> ```
+Files, fonts, and configuration entries support `profiles` in addition to the
+types listed above.
 
 Here are examples for the types that do support it:
 
@@ -655,8 +646,6 @@ Compare the names with `rwr profiles`. Names are case-sensitive: `Work` and `wor
 
 1. Verify profile names match exactly (case-sensitive)
 2. Check that the items carry the `profiles` field you think they do
-3. Confirm the blueprint type supports `profiles` at all - fonts and
-   configuration blueprints do not
 
 #### More Items Than Expected
 
@@ -762,16 +751,15 @@ Yes, profile names are case-sensitive. `Work` and `work` are different profiles.
 
 Run `rwr profiles` to see all available profiles in your configuration.
 
-### Can I use profiles with any blueprint type?
+### Do all blueprint types support profiles?
 
-Almost. Packages, repositories, files, templates, directories, services, users,
-groups, git repositories, scripts and SSH keys all support `profiles`. Fonts and
-configuration blueprints do not, and because blueprints decode strictly, adding
-the key there is an error rather than a no-op.
+Yes. Packages, repositories, files, templates, directories, services, users,
+groups, git repositories, scripts, SSH keys, fonts, and configuration entries
+all support `profiles`.
 
 ### Does RWR warn me about a profile name that does not exist?
 
-No. An unknown name simply matches nothing. Use `rwr profiles` to check.
+No. An unknown name matches nothing. Use `rwr profiles` to check.
 
 ## Related Documentation
 
