@@ -192,6 +192,12 @@ in argv, logs, or terminal output and SHALL be cleared from its temporary byte
 buffers after use. The actual command SHALL remain captured by the TUI after
 validation; collecting the password SHALL NOT suspend or replace the dashboard.
 
+Managed elevated and alternate-user commands SHALL use askpass regardless of
+whether authorization came from an ambient ticket or RWR's masked prompt.
+Authentication bytes SHALL NOT be prepended to command stdin or staged in an
+interactive PTY. Headless execution SHALL preserve command stdin and use sudo's
+normal terminal password input when a terminal is available.
+
 A provider-wide escalation declaration SHALL be narrowed when the operation can
 be classified: Homebrew formulae remain captured without sudo validation, while
 casks retain the secure validation step.
@@ -212,6 +218,14 @@ casks retain the secure validation step.
 - **AND** the command's supplied stdin remains available to the command
 - **AND** a valid ticket or password-free command runs without an extra prompt
 - **AND** canceling password entry stops the waiting command
+
+#### Scenario: Prompted authentication is reused across sections
+
+- **WHEN** RWR has collected and validated a sudo password during the run
+- **AND** later commands have separate sessions or interactive PTYs
+- **THEN** sudo obtains the cached password through managed askpass if needed
+- **AND** the operator does not retype it in an interactive-tool popup
+- **AND** password-free commands cannot consume authentication bytes as stdin
 
 #### Scenario: A Homebrew formula with a cold sudo cache
 
@@ -421,7 +435,8 @@ class of name `{{ .TempDir }}` exists to eliminate.
 
 On Linux and macOS, captured commands marked `Escalates` SHALL use a
 command-scoped askpass bridge while an inline display owns the terminal.
-Elevated commands whose readiness probe succeeded SHALL retain managed askpass
+Elevated and alternate-user commands SHALL retain managed askpass after both
+ambient readiness checks and successful masked authentication,
 so a different child session or TTY cannot suppress required password entry.
 Interactive popup processes SHALL bind the bridge to their actual child session
 after startup, with the same peer validation as captured commands.
@@ -435,6 +450,17 @@ stdout as consumed by sudo. The socket SHALL be owner-readable/writable, inside
 an owner-only directory. Commands explicitly marked `Interactive` SHALL retain
 the terminal handoff. A command failure SHALL NOT automatically retry with
 terminal access.
+
+Ordinary scripts SHALL support managed nested sudo without being elevated or
+preauthenticated. A script that never invokes sudo SHALL NOT request a sudo
+password or require sudo to be installed.
+
+#### Scenario: An ordinary script invokes sudo
+
+- **WHEN** a captured or explicitly interactive script calls sudo
+- **THEN** authentication uses the managed masked prompt and run-scoped password
+- **AND** subsequent scripts can reuse that password across child sessions
+- **AND** scripts that never call sudo run without authentication
 
 #### Scenario: A child sudo cannot reuse the parent's sudo ticket
 

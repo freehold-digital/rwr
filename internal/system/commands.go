@@ -48,22 +48,6 @@ func buildCommand(cmd types.Command) *exec.Cmd {
 	return built
 }
 
-// buildAuthenticatedCommand binds a freshly-read password to the exact sudo
-// process that runs the requested command. Some sudo policies do not make a
-// ticket created by a separate `sudo -v` available to the later process.
-func buildAuthenticatedCommand(cmd types.Command) *exec.Cmd {
-	ctx := RunContext()
-	var args []string
-	if cmd.Elevated {
-		args = append([]string{"-S", "-p", "", "--", cmd.Exec}, cmd.Args...)
-	} else {
-		args = append([]string{"-S", "-p", "", "-u", cmd.AsUser, "--", cmd.Exec}, cmd.Args...)
-	}
-	built := exec.CommandContext(ctx, "sudo", args...) // #nosec G204 -- fixed sudo flags followed by discrete command argv
-	configureCommandCancellation(built)
-	return built
-}
-
 func configureCommandCancellation(built *exec.Cmd) {
 	// Cancelling the run kills the command's whole process group, not just the
 	// process rwr spawned: `brew install` is a shell that forks curl and git,
@@ -141,11 +125,6 @@ var (
 	sudoValidateMu sync.Mutex
 	sudoProbedAt   time.Time
 	sudoProbeWarm  bool
-	// sudoWarmFromPrompt distinguishes a ticket RWR created for a
-	// self-escalating command from an ambient ticket proven by `sudo -n -v`.
-	// Some macOS sudo policies let the original command use the former but do
-	// not let a later, separately spawned sudo process reuse it.
-	sudoWarmFromPrompt bool
 	// Retained only for this run so separately-scoped sudo processes do not
 	// ask for the same password repeatedly. Callers receive disposable copies.
 	sudoRunPassword []byte
@@ -166,7 +145,7 @@ func mayPromptForSudo(cmd types.Command) bool {
 	if runtime.GOOS == "windows" {
 		return false
 	}
-	return cmd.Elevated || cmd.AsUser != "" || cmd.Escalates
+	return cmd.Elevated || cmd.AsUser != "" || cmd.Escalates || cmd.MayEscalate
 }
 
 // sudoCredentialsCached reports whether sudo would run without asking.
@@ -270,7 +249,6 @@ func resetSudoCredentials() {
 	defer sudoValidateMu.Unlock()
 	sudoProbedAt = time.Time{}
 	sudoProbeWarm = false
-	sudoWarmFromPrompt = false
 	zeroBytes(sudoRunPassword)
 	sudoRunPassword = nil
 }
@@ -306,18 +284,8 @@ func sudoCredentialsCached() bool {
 	ctx, cancel := context.WithTimeout(RunContext(), sudoProbeTimeout)
 	defer cancel()
 	sudoProbeWarm = sudoProbe(ctx) == nil
-	sudoWarmFromPrompt = false
 	sudoProbedAt = time.Now()
 	return sudoProbeWarm
-}
-
-func sudoCredentialsReusableByManagedCommand() bool {
-	if !sudoCredentialsCached() {
-		return false
-	}
-	sudoValidateMu.Lock()
-	defer sudoValidateMu.Unlock()
-	return !sudoWarmFromPrompt
 }
 
 func ensureSudoCredentials() error {
@@ -329,7 +297,7 @@ func ensureSudoCredentials() error {
 		return err
 	}
 	zeroBytes(password)
-	markSudoWarm(true)
+	markSudoWarm()
 	return nil
 }
 
@@ -362,7 +330,7 @@ func validatedSudoPasswordContext(ctx context.Context) ([]byte, error) {
 			}
 			return nil, err
 		}
-		input := passwordInput(password, "")
+		input := passwordInput(password)
 		err = sudoValidate(ctx, input)
 		zeroBytes(input)
 		if err == nil {
@@ -379,19 +347,17 @@ func validatedSudoPasswordContext(ctx context.Context) ([]byte, error) {
 	return nil, last
 }
 
-func markSudoWarm(fromPrompt bool) {
+func markSudoWarm() {
 	sudoValidateMu.Lock()
 	sudoProbeWarm = true
-	sudoWarmFromPrompt = fromPrompt
 	sudoProbedAt = time.Now()
 	sudoValidateMu.Unlock()
 }
 
-func passwordInput(password []byte, stdin string) []byte {
-	input := make([]byte, 0, len(password)+1+len(stdin))
+func passwordInput(password []byte) []byte {
+	input := make([]byte, 0, len(password)+1)
 	input = append(input, password...)
 	input = append(input, '\n')
-	input = append(input, stdin...)
 	return input
 }
 
@@ -401,30 +367,28 @@ func zeroBytes(value []byte) {
 	}
 }
 
-func commandForRun(cmd types.Command) (*exec.Cmd, []byte, error) {
+func commandForRun(cmd types.Command) (*exec.Cmd, error) {
 	if runtime.GOOS == "windows" || (!cmd.Elevated && cmd.AsUser == "") {
-		return buildCommand(cmd), nil, nil
+		return buildCommand(cmd), nil
 	}
-	if sudoCredentialsReusableByManagedCommand() {
-		command := buildCommand(cmd)
-		if reporting.SupportsInlinePrompts() {
-			// A ticket observed by the probe may not cover this command's
-			// session, TTY, or policy. Let this exact sudo process request
-			// the managed password popup instead of refusing with -n.
-			command.Args[1] = "-A"
-		}
-		return command, nil, nil
-	}
-	password, err := validatedSudoPassword()
-	if err != nil {
+	if err := ensureSudoCredentials(); err != nil {
 		if errors.Is(err, errNoSudoTerminal) {
-			return buildCommand(cmd), nil, nil
+			return buildCommand(cmd), nil
 		}
-		return nil, nil, fmt.Errorf("%w: %v", ErrSudoAuthentication, err)
+		return nil, fmt.Errorf("%w: %v", ErrSudoAuthentication, err)
 	}
-	input := passwordInput(password, cmd.Stdin)
-	zeroBytes(password)
-	return buildAuthenticatedCommand(cmd), input, nil
+	command := buildCommand(cmd)
+	if reporting.SupportsInlinePrompts() {
+		// Always let this sudo process request the cached password through
+		// askpass. Preloading -S input into a PTY loses it when sudo flushes
+		// the terminal; a warm ticket instead passes it to the target's stdin.
+		command.Args[1] = "-A"
+	} else if term.IsTerminal(int(os.Stdin.Fd())) {
+		// Headless sudo owns its normal password input on /dev/tty. Never
+		// mix authentication bytes with input intended for the command.
+		command.Args = append(command.Args[:1], command.Args[2:]...)
+	}
+	return command, nil
 }
 
 // commandExecutionError preserves the useful part of a failed command's
@@ -597,14 +561,13 @@ func runCommand(cmd types.Command, debug bool) error {
 		return nil
 	}
 
-	command, sudoInput, err := commandForRun(cmd)
+	command, err := commandForRun(cmd)
 	if err != nil {
 		if Cancelled() {
 			return ErrCancelled
 		}
 		return err
 	}
-	defer zeroBytes(sudoInput)
 	setupCommandEnvironment(command, cmd)
 	bridge, bridgeErr := installSudoBridge(command, cmd)
 	if bridgeErr != nil {
@@ -612,12 +575,7 @@ func runCommand(cmd types.Command, debug bool) error {
 	}
 	defer bridge.Close()
 
-	if sudoInput != nil {
-		command.Stdin = bytes.NewReader(sudoInput)
-		if cmd.Interactive && !reporting.SupportsInlinePrompts() {
-			command.Stdin = io.MultiReader(command.Stdin, os.Stdin)
-		}
-	} else if cmd.Stdin != "" {
+	if cmd.Stdin != "" {
 		// Supplied input wins over the terminal even for an interactive command:
 		// the caller is feeding the tool something specific, and inheriting
 		// os.Stdin instead would hang waiting for a human.
@@ -651,9 +609,6 @@ func runCommand(cmd types.Command, debug bool) error {
 			failure := commandFailure(err, stderrTail, cmd.Secrets)
 			log.Errorf("Error running command: %v", failure)
 			return failure
-		}
-		if sudoInput != nil {
-			markSudoWarm(true)
 		}
 		return nil
 	}
@@ -699,9 +654,6 @@ func runCommand(cmd types.Command, debug bool) error {
 		log.Errorf("Error running command: %v", failure)
 		return failure
 	}
-	if sudoInput != nil {
-		markSudoWarm(true)
-	}
 
 	return nil
 }
@@ -734,14 +686,13 @@ func runCommandOutput(cmd types.Command, debug bool) (string, error) {
 		}
 	}
 
-	command, sudoInput, err := commandForRun(cmd)
+	command, err := commandForRun(cmd)
 	if err != nil {
 		if Cancelled() {
 			return "", ErrCancelled
 		}
 		return "", err
 	}
-	defer zeroBytes(sudoInput)
 	setupCommandEnvironment(command, cmd)
 	bridge, bridgeErr := installSudoBridge(command, cmd)
 	if bridgeErr != nil {
@@ -751,9 +702,7 @@ func runCommandOutput(cmd types.Command, debug bool) (string, error) {
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	if sudoInput != nil {
-		command.Stdin = bytes.NewReader(sudoInput)
-	} else if cmd.Stdin != "" {
+	if cmd.Stdin != "" {
 		command.Stdin = strings.NewReader(cmd.Stdin)
 	}
 	command.Stdout = &stdout
@@ -767,9 +716,6 @@ func runCommandOutput(cmd types.Command, debug bool) (string, error) {
 		errMsg := fmt.Sprintf("Error running command: %v\nStderr: %s", err, scrubCommandText(stderr.String(), cmd.Secrets))
 		log.Error(errMsg)
 		return "", err
-	}
-	if sudoInput != nil {
-		markSudoWarm(true)
 	}
 
 	return stdout.String(), nil

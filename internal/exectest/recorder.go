@@ -19,11 +19,12 @@ type Call struct {
 	Interactive bool
 	// Escalates records a command rwr runs unprivileged that calls sudo
 	// itself, which decides whether the credential cache is warmed first.
-	Escalates bool
-	AsUser    string
-	LogName   string
-	Vars      map[string]string
-	Stdin     string
+	Escalates   bool
+	MayEscalate bool
+	AsUser      string
+	LogName     string
+	Vars        map[string]string
+	Stdin       string
 }
 
 // Argv is the full argument vector as the target program would receive it:
@@ -71,6 +72,7 @@ func (r *Recorder) record(cmd types.Command) {
 		Elevated:    cmd.Elevated,
 		Interactive: cmd.Interactive,
 		Escalates:   cmd.Escalates,
+		MayEscalate: cmd.MayEscalate,
 		AsUser:      cmd.AsUser,
 		LogName:     cmd.LogName,
 		Vars:        cmd.Variables,
