@@ -1,14 +1,12 @@
 # Best Practices
 
-Use these recommendations to organize blueprints and manage RWR configurations on personal machines.
+Use these recommendations to keep an RWR setup understandable as it grows. Organize blueprints so the next reader can find a resource, and keep secrets inside the credential model.
 
-## Organizing Blueprints
+## Organize blueprints
 
-When organizing your blueprints, consider the following best practices:
+1. Use a consistent naming convention for your blueprint files, such as `<blueprint-type>.yaml` (for example `packages.yaml`, `repositories.yaml`).
 
-1. Use a consistent naming convention for your blueprint files, such as `<blueprint-type>.yaml` (e.g., `packages.yaml`, `repositories.yaml`).
-
-2. Group related blueprints into subdirectories for better organization. For example:
+2. Group related blueprints into subdirectories:
 
     ```text
     blueprints/
@@ -22,89 +20,36 @@ When organizing your blueprints, consider the following best practices:
         └── web.yaml
     ```
 
-3. Split large blueprints into smaller, focused files for better readability and maintainability.
+3. Split large blueprints into smaller, focused files. RWR routes by top-level keys, so a file containing both `packages:` and `files:` feeds two processors.
 
-4. Use meaningful names for your blueprints, variables, and templates to make your configuration self-explanatory.
+4. Use `import` to share base entries across files instead of copying them. See [Common fields](blueprints/common-fields.md#import).
 
-## Managing Configurations
+5. Use variables for values that change per machine, such as file paths, URLs, or personal preferences. See [Variables and templates](variables.md).
 
-When managing configurations for your personal machine, consider the following best practices:
+## Keep a machine reproducible
 
-1. Use variables for values that can change, such as file paths, URLs, or personal preferences.
+- Track the tree in Git. RWR re-applies the declared state from any checkout, so a reinstall or a new machine starts from the same description.
+- Check a tree with `rwr validate`, preview with `rwr all --dry-run`, then apply. The same sequence works for later changes.
+- Set `schema_version` in the init file when you want a tree to hold its schema. An unpinned version follows the latest version after an RWR upgrade. See [Schema versioning](schema-versioning.md).
 
-2. Create separate blueprint files for different use cases. For example, keep essential packages in `core.yaml` and development tools in `development.yaml`.
+## Use profiles deliberately
 
-3. Use a version control system (e.g., Git) to track changes to your blueprints and maintain a history of your configurations.
+- Name profiles for what they mean on the machine, such as `work`, `gaming`, or `laptop`. Avoid `p1`, `setup`, or other names that only make sense today.
+- Keep base items (no `profiles` field) small and shared. Move machine-specific work into profiles.
+- Preview a profile combination before applying it: `rwr all --dry-run --profile work,gaming`.
+- See [Best practices for profiles](profile-best-practices.md) for organization patterns and the guard-script pattern.
 
-4. Consider using branches or tags in your version control system to represent different configurations or snapshots of your system.
+## Keep credentials out of the tree
 
-## Keeping Your System Maintainable
+- RWR withholds your GitHub token and SSH private key from blueprints. Give a credential to a blueprint only when the blueprint needs it, with the `exposeCredentials` key. Read [Credentials](credentials.md) before you use that key.
+- Keep vault item references in the init file, and reference them by name from blueprints. Blueprints select names but cannot redirect endpoints.
+- RWR removes credential values from logs. `rwr config view --show-secrets` reveals them; use it only to confirm a value, and do not keep the output.
 
-To keep your system maintainable with RWR, consider the following best practices:
+## What belongs where
 
-1. Regularly update your blueprints to reflect changes in your system or application requirements.
-
-2. Use comments in your blueprints to document complex configurations or provide explanations for specific settings.
-
-3. Avoid duplicating configuration settings across multiple blueprints. Instead, use variables or templates to centralize common configurations.
-
-4. Test your blueprints thoroughly in a virtual machine or isolated environment before applying them to your local system.
-
-5. Maintain a backup of your system configuration or create snapshots before applying significant changes to your local system.
-
-## Using Profiles Effectively
-
-Profiles allow you to organize and selectively install configurations based on different contexts. Consider these approaches:
-
-1. Separate development, testing, and production configurations with environment-based profiles.
-
-    ```yaml
-    packages:
-      # Always installed
-      - name: git
-        action: install
-      # Development only
-      - name: docker
-        action: install
-        profiles: [development]
-    ```
-
-2. Organize tools by user role or responsibility with role-based profiles.
-
-    ```yaml
-    packages:
-      # Developer tools
-      - name: vscode
-        action: install
-        profiles: [developer]
-      # Designer tools
-      - name: figma
-        action: install
-        profiles: [designer]
-    ```
-
-3. Choose profile names that make sense to you and your team. There are no naming restrictions.
-
-4. Add comments explaining the purpose of each profile.
-
-5. Use `--dry-run` to preview profile combinations before applying them.
-
-## Security Considerations
-
-When working with RWR, keep the following security best practices in mind:
-
-1. RWR withholds your GitHub token and SSH private key from blueprints. Give a
-   credential to a blueprint only when the blueprint needs it, with the
-   `exposeCredentials` key. Read [Credentials](credentials.md) before you use
-   that key.
-
-2. RWR removes credential values from the logs. Use the `--show-secrets` flag
-   only when you must see a value, and do not keep that output.
-
-3. Regularly update your system packages and dependencies to address security vulnerabilities.
-
-4. Limit access to your RWR configuration files and repositories to authorized users only.
-
-5. Use secure communication channels (e.g., HTTPS, SSH) when accessing remote repositories or servers.
-
-Use these recommendations to organize and secure your configuration. Test changes before applying them to your personal machine.
+| Content | Home |
+|---|---|
+| Package managers, providers, repository steps | [providers.md](providers.md) |
+| Credential sources, scopes, native tasks | [credentials.md](credentials.md) |
+| Run records, drift, reversal | [state.md](state.md) |
+| Profile organization | [profile-best-practices.md](profile-best-practices.md) |

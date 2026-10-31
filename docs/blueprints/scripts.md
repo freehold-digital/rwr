@@ -211,11 +211,10 @@ scripts:
       - dev
 ```
 
-This allows you to reuse common scripts across multiple configurations.
 
 ## Script Execution
 
-When the Scripts blueprint is processed, RWR will execute the specified scripts in the order they are defined. The scripts can be provided either as separate files using the `source` field or as inline content using the `content` field.
+When the Scripts blueprint is processed, RWR executes the specified scripts in the order they are defined. The scripts can be provided either as separate files using the `source` field or as inline content using the `content` field.
 
 RWR runs scripts in Bash, Python, Ruby, Perl, Lua, and PowerShell. The `exec`
 field gives the program that runs the script.
@@ -256,22 +255,6 @@ RWR installs a managed askpass bridge for every script:
   `sudo` it resolves from `PATH` still uses the managed bridge, while an
   absolute-path `sudo` prompts in the terminal that the script owns.
 
-## Best Practices
-
-- Keep your scripts concise and focused on specific tasks.
-- Use descriptive names for your scripts to make their purpose clear.
-- Give the `exec` field for each script. RWR does not read the shebang line.
-- Use the `elevated` field sparingly and only when necessary.
-- Consider using variables and templating to make your scripts more dynamic and reusable.
-- Test your scripts thoroughly before including them in your RWR configuration.
-
-## Troubleshooting
-
-If you encounter issues with the Scripts blueprint, consider the following:
-
-- Ensure that the script files specified in the `source` field exist and have the correct permissions.
-- Verify that the required interpreters or dependencies for your scripts are installed on the target system.
-- Check the RWR logs for any error messages or output related to script execution.
-- Use the `--debug` flag when running RWR to enable verbose output and gather more information.
-
-If you need further assistance, open an issue at [github.com/freehold-digital/rwr/issues](https://github.com/freehold-digital/rwr/issues).
+If a script misbehaves, run RWR with `--debug` to see each command and its
+output, or open an issue at
+[github.com/freehold-digital/rwr/issues](https://github.com/freehold-digital/rwr/issues).

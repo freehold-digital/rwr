@@ -1,6 +1,6 @@
 # Services Blueprint
 
-The Services Blueprint in Rinse, Wash, Repeat (RWR) allows you to manage system services, including starting, stopping, enabling, and disabling services across different operating systems.
+The Services Blueprint manages system services: start, stop, enable, disable, restart, reload, status checks, and unit file creation or removal across operating systems.
 
 See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 `import`, `interactive`, and the rule that an unknown key is an error.
@@ -21,7 +21,7 @@ services:
 
 ## Service Object Properties
 
-Each service object in the Services Blueprint can have the following properties:
+A service object can have the following properties:
 
 | Property | Required | Description |
 |----------|----------|-------------|
@@ -53,11 +53,8 @@ services:
       - production
 ```
 
-This allows you to maintain common service configurations separately from system-specific ones.
 
 ## Supported Actions
-
-The Services Blueprint supports the following actions:
 
 - `start`: Start the service
 - `stop`: Stop the service
@@ -89,130 +86,4 @@ On Windows, the Services Blueprint uses the `sc` command to manage services. The
 
 ## Examples
 
-Here are a few examples of using the Services Blueprint in different formats:
-
-### YAML
-
-```yaml
-services:
-  # Base services - always managed (no profiles field)
-  - name: nginx
-    action: start
-    elevated: true
-
-  - name: ssh
-    action: enable
-    elevated: true
-
-  # Development profile services
-  - name: docker
-    profiles:
-      - dev
-    action: start
-    elevated: true
-
-  - name: mysql
-    profiles:
-      - dev
-    action: enable
-    elevated: true
-
-  # Production profile services
-  - name: postgresql
-    profiles:
-      - production
-    action: start
-    elevated: true
-
-  - name: redis
-    profiles:
-      - production
-    action: enable
-    elevated: true
-```
-
-### JSON
-
-```json
-{
-  "services": [
-    {
-      "name": "nginx",
-      "action": "start",
-      "elevated": true
-    },
-    {
-      "name": "ssh",
-      "action": "enable",
-      "elevated": true
-    },
-    {
-      "name": "docker",
-      "profiles": ["dev"],
-      "action": "start",
-      "elevated": true
-    },
-    {
-      "name": "mysql",
-      "profiles": ["dev"],
-      "action": "enable",
-      "elevated": true
-    },
-    {
-      "name": "postgresql",
-      "profiles": ["production"],
-      "action": "start",
-      "elevated": true
-    },
-    {
-      "name": "redis",
-      "profiles": ["production"],
-      "action": "enable",
-      "elevated": true
-    }
-  ]
-}
-```
-
-### TOML
-
-```toml
-# Base services - always managed (no profiles field)
-[[services]]
-name = "nginx"
-action = "start"
-elevated = true
-
-[[services]]
-name = "ssh"
-action = "enable"
-elevated = true
-
-# Development profile services
-[[services]]
-name = "docker"
-profiles = ["dev"]
-action = "start"
-elevated = true
-
-[[services]]
-name = "mysql"
-profiles = ["dev"]
-action = "enable"
-elevated = true
-
-# Production profile services
-[[services]]
-name = "postgresql"
-profiles = ["production"]
-action = "start"
-elevated = true
-
-[[services]]
-name = "redis"
-profiles = ["production"]
-action = "enable"
-elevated = true
-```
-
-For more information on using the Services Blueprint in your RWR configuration, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Commands and Flags](../cli/command-and-flags.md) pages.
+More working trees in every supported format, including JSON and TOML: [examples](../../examples/README.md).

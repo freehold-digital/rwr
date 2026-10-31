@@ -1,6 +1,6 @@
 # Validate Command
 
-The `validate` command in RWR helps you verify your blueprints and provider configurations before running them. This ensures that your configurations are correct and will work as expected when deployed.
+The `validate` command checks blueprint and provider configurations for errors before a run.
 
 ## Overview
 

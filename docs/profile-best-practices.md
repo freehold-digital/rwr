@@ -134,32 +134,6 @@ packages:
       - datascience
 ```
 
-## Multiple Profiles
-
-Items can belong to multiple profiles, which is useful for shared tools.
-
-```yaml
-packages:
-  # Shared across multiple contexts
-  - names:
-      - docker
-      - git
-      - tmux
-    action: install
-    profiles:
-      - backend
-      - frontend
-      - devops
-
-  # Specific to one context
-  - names:
-      - react-native-cli
-      - android-studio
-    action: install
-    profiles:
-      - mobile
-```
-
 ## Profile Discovery
 
 Use `rwr profiles` to inspect the profiles available in your configuration. It
@@ -189,24 +163,9 @@ rwr all --profile frontend --profile development --dry-run
 
 ## Organization Tips
 
-### Start Simple
+### Start simple
 
-Begin with basic profiles and add complexity as needed.
-
-```yaml
-# Start with this
-packages:
-  - names:
-      - git
-    action: install
-  - names:
-      - docker
-    action: install
-    profiles:
-      - dev
-
-# Add more later as you understand your needs
-```
+Begin with one or two profiles and add more when a real need appears.
 
 ### Use Meaningful Names
 
@@ -292,25 +251,6 @@ For a complete example of the pattern, see
 [examples/bitwarden](../examples/bitwarden/README.md), whose backup and
 restore scripts are built from it.
 
-### Profile Inheritance
-
-You can simulate inheritance by using multiple profiles.
-
-```yaml
-packages:
-  # Basic development tools
-  - name: git
-    action: install
-    profiles: [dev-basic]
-
-  # Advanced development tools
-  - name: docker
-    action: install
-    profiles: [dev-advanced]
-
-  # Use both: --profile dev-basic --profile dev-advanced
-```
-
 ### Environment-Specific Configs
 
 Use profiles for different deployment environments.
@@ -347,21 +287,9 @@ If you are getting unexpected packages:
 3. Remember `--profile all` activates every item, gated or not
 4. Use `--dry-run` to preview what will be installed
 
-## Performance Considerations
+## Performance considerations
 
-### Large Configurations
-
-For large configurations with many profiles:
-
-```bash
-# Only install what you need
-rwr all --profile specific-profile
-
-# Rather than installing everything
-rwr all --profile all
-```
-
-### Profile Combinations
+For large trees, run one profile rather than `--profile all`: fewer items means a shorter run and fewer package-manager calls.
 
 Check profile combinations for conflicting software.
 
@@ -378,5 +306,3 @@ packages:
   # Document the conflict in comments
   # Note: Don't use 'legacy' and 'modern' profiles together
 ```
-
-This guide provides practical examples without telling you how you must organize your profiles. Use what works for your specific needs and context.

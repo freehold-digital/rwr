@@ -99,7 +99,6 @@ repositories:
       - production
 ```
 
-This allows you to maintain common repository configurations separately from environment-specific ones.
 
 ## Examples
 
