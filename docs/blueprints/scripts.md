@@ -126,9 +126,9 @@ The Scripts blueprint supports the following fields:
 | `content` | No | The inline content of the script. |
 | `args` | No | Arguments to pass to the script, as a string (split on whitespace) or a list (each element taken verbatim). |
 | `elevated` | No | Whether to run the script with elevated privileges (`sudo`). Default is `false`. |
-| `asUser` | No | Run the script as another account: `sudo -u <user>`. Ignored when `elevated: true`, since sudo cannot do both at once; RWR warns and runs elevated. |
+| `asUser` | No | Run the script as another account: `sudo -u <user>`. Ignored when `elevated: true`, since sudo cannot do both at once. RWR warns and runs elevated. |
 | `log` | No | Log name for script output. |
-| `interactive` | No | Give this script direct terminal input (`true`/`false`). Default is `false`. Set it only for a script that actually reads from the operator; RWR's global `--interactive` flag controls RWR prompts and does not make scripts interactive. |
+| `interactive` | No | Give this script direct terminal input (`true`/`false`). Default is `false`. Set it only for a script that actually reads from the operator. RWR's global `--interactive` flag controls RWR prompts and does not make scripts interactive. |
 
 > [!NOTE]
 > Either the `source`, `content`, or `import` field must be provided. If both `source` and `content` are present, `source` takes precedence.
@@ -145,9 +145,7 @@ and each part is sent to the script as one argument. The value
 args: "--verbose --out /tmp"
 ```
 
-A **list** sends each element exactly as written, spaces and all. This is the
-only way to pass an argument that contains whitespace, because RWR runs no
-shell and quoting inside the string form has no effect:
+A list passes each argument unchanged, including spaces. Use a list for arguments containing whitespace. RWR does not run a shell, so quoting inside the string form has no effect:
 
 ```yaml
 args: ["--message", "hello world", "--out", "/tmp/my reports"]
@@ -213,11 +211,10 @@ scripts:
       - dev
 ```
 
-This allows you to reuse common scripts across multiple configurations.
 
 ## Script Execution
 
-When the Scripts blueprint is processed, RWR will execute the specified scripts in the order they are defined. The scripts can be provided either as separate files using the `source` field or as inline content using the `content` field.
+When the Scripts blueprint is processed, RWR executes the specified scripts in the order they are defined. The scripts can be provided either as separate files using the `source` field or as inline content using the `content` field.
 
 RWR runs scripts in Bash, Python, Ruby, Perl, Lua, and PowerShell. The `exec`
 field gives the program that runs the script.
@@ -241,22 +238,23 @@ scripts:
 Declaring both `elevated: true` and `asUser` runs the script elevated and
 ignores `asUser`, with a warning naming the account that was dropped.
 
-## Best Practices
+### Scripts that call sudo themselves
 
-- Keep your scripts concise and focused on specific tasks.
-- Use descriptive names for your scripts to make their purpose clear.
-- Give the `exec` field for each script. RWR does not read the shebang line.
-- Use the `elevated` field sparingly and only when necessary.
-- Consider using variables and templating to make your scripts more dynamic and reusable.
-- Test your scripts thoroughly before including them in your RWR configuration.
+A script does not need `elevated: true` to call `sudo` inside its own content.
+RWR installs a managed askpass bridge for every script:
 
-## Troubleshooting
+- The first script that invokes `sudo` asks through RWR's masked password
+  prompt if the sudo cache is cold. Later scripts, child sessions, and popup
+  terminals reuse the password the operator already typed, as long as the run
+  is active.
+- A script that never invokes `sudo` runs without asking for a password and
+  does not require `sudo` to be installed.
+- An explicit `sudo -n` inside a script stays noninteractive, as its caller
+  requested.
+- An explicitly `interactive: true` script keeps direct terminal control: a
+  `sudo` it resolves from `PATH` still uses the managed bridge, while an
+  absolute-path `sudo` prompts in the terminal that the script owns.
 
-If you encounter issues with the Scripts blueprint, consider the following:
-
-- Ensure that the script files specified in the `source` field exist and have the correct permissions.
-- Verify that the required interpreters or dependencies for your scripts are installed on the target system.
-- Check the RWR logs for any error messages or output related to script execution.
-- Use the `--debug` flag when running RWR to enable verbose output and gather more information.
-
-If you need further assistance, open an issue at [github.com/freehold-digital/rwr/issues](https://github.com/freehold-digital/rwr/issues).
+If a script misbehaves, run RWR with `--debug` to see each command and its
+output, or open an issue at
+[github.com/freehold-digital/rwr/issues](https://github.com/freehold-digital/rwr/issues).

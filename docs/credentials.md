@@ -8,7 +8,9 @@ rwr run scripts --except credentials
 rwr run credentials --profile bitwarden
 ```
 
-The root shorthands `rwr all` and `rwr credentials` work too. `--except` accepts repeated flags and comma-separated processor names. Unknown names and requesting/excluding the same named processor are errors. `blueprints.except` supplies full-run defaults; a named invocation overrides those defaults, while CLI exclusions always win.
+The root shorthands `rwr all` and `rwr credentials` also work. `--except` accepts repeated flags and comma-separated processor names. Unknown names are errors. Requesting and excluding the same named processor is also an error.
+
+`blueprints.except` supplies defaults for full runs. A named invocation overrides those defaults. CLI exclusions always win.
 
 ## Acquisition policy
 
@@ -24,9 +26,11 @@ credentialPolicy:
 
 `setup: explicit` is the default: all runs do not onboard providers. To deliberately include setup in a full run, use `setup: ordered`, include credentials in the order, and remove its init exclusion. Consumers never trigger onboarding themselves.
 
-**Behavior change:** declaring or exposing a credential no longer acquires it at startup. Runtime lookup is noninteractive. It never installs tools, logs in, unlocks, prompts, or saves values. Profiles are filtered before dependencies resolve. Missing values skip only dependent resources by default; `onUnavailable: fail` records their failure and continues independent work. Executed operation failures still make the run fail.
+Declaring or exposing a credential does not acquire it at startup. Runtime lookup is noninteractive. It never installs tools, logs in, unlocks, prompts, or saves values.
 
-Excluding credentials denies managed provider calls, including probes. Already supplied environment values and noninteractive keyring reads remain available. Linux reads only unlocked Secret Service items; Windows uses Credential Manager. Runtime macOS keyring reads currently report unavailable to avoid an unexpected Keychain access dialog. Explicit keyring writes remain supported on all supported platforms.
+RWR filters profiles before resolving dependencies. By default, missing values skip only dependent resources. With `onUnavailable: fail`, RWR records their failure and continues independent work. Failures in executed operations still make the run fail.
+
+Excluding credentials denies managed provider calls, including probes. Already supplied environment values and noninteractive keyring reads remain available. Linux reads only unlocked Secret Service items. Windows uses Credential Manager. Runtime macOS keyring reads currently report unavailable to avoid an unexpected Keychain access dialog. Explicit keyring writes remain supported on all supported platforms.
 
 ## Trusted provider declarations
 
@@ -53,9 +57,13 @@ credentialAttachments:
     write: true
 ```
 
-Connections and item/attachment references belong in trusted init configuration. Blueprints select their names; they cannot redirect endpoints or authorize new attachments. `sources` retains its string syntax; the new optional `references` array is strictly decoded separately and is tried after local/legacy sources. Fields use the Bitwarden vocabulary: password, username, uri, notes, totp, or `field:NAME`. The first nonempty value wins.
+Connections and item or attachment references belong in trusted init configuration. Blueprints select names but cannot redirect endpoints or authorize new attachments.
 
-Legacy `bw:ITEM/password`, `env:NAME`, `keyring`, and `prompt` declarations still parse. Legacy `bw:` reads the existing CLI context without onboarding. Prefer named connections for account isolation. `prompt` is never a runtime fallback; an explicitly selected native task may prompt when its declaration permits it. Native setup does not export a vault session into scripts or the parent shell.
+`sources` keeps its string syntax. The optional `references` array is decoded strictly and tried after local or legacy sources. Fields use Bitwarden names: password, username, uri, notes, totp, or `field:NAME`. The first nonempty value wins.
+
+Legacy `bw:ITEM/password`, `env:NAME`, `keyring`, and `prompt` declarations still parse. Legacy `bw:` reads the existing CLI context without onboarding. Prefer named connections for account isolation.
+
+`prompt` is never a runtime fallback. An explicitly selected native task can prompt when its declaration permits it. Native setup does not export a vault session into scripts or the parent shell.
 
 ## Setup blueprints
 
@@ -78,19 +86,25 @@ credential_setup:
         # ownerTrust: 6             # explicit ultimate trust; omitted by default
 ```
 
-`--profile bitwarden` is an ordinary profile filter, not a vendor selector. Imports work through `credential_setup: [{import: ../shared/credentials.yaml}]`. A setup entry without tasks installs/configures/authenticates only. `install` accepts `never` (default) or `if-missing`; `session` accepts `ensure-ready` (default) or `existing`. Missing tools or locked sessions in noninteractive mode report unavailable. Explicit authentication failures remain failures; choosing Skip suppresses later attempts during that run. Ctrl-C cancels.
+`--profile bitwarden` is an ordinary profile filter, not a vendor selector. Imports work through `credential_setup: [{import: ../shared/credentials.yaml}]`. An entry without tasks only installs, configures, and authenticates.
 
-Bitwarden uses an isolated CLI data directory under the OS config directory's `rwr/credential-providers/`, keyed by connection identity. Login supports the CLI's MFA interaction. An existing account/endpoint conflict is rejected. Installation uses the verified official CLI archive. Session tokens stay in the RWR process and child-only environments; closing a session does not lock/logout another application's vault. See the [official CLI documentation](https://bitwarden.com/help/cli/).
+`install` accepts `never` (default) or `if-missing`. `session` accepts `ensure-ready` (default) or `existing`. Missing tools or locked sessions report unavailable in noninteractive mode. Explicit authentication failures remain failures. Choosing Skip suppresses later attempts during the run. Ctrl-C cancels.
 
-The shipped adapter is Bitwarden. Other vendors can implement the provider/session interfaces and optional attachment capability; 1Password and LastPass are not yet shipped adapters.
+Bitwarden uses an isolated CLI data directory under the OS config directory's `rwr/credential-providers/`, keyed by connection identity. Login supports the CLI's MFA interaction. RWR rejects conflicts with an existing account or endpoint. Installation uses the verified official CLI archive.
+
+Session tokens stay in the RWR process and child-only environments. Closing a session does not lock or log out another application's vault. See the [official CLI documentation](https://bitwarden.com/help/cli/).
+
+The shipped adapter is Bitwarden. Other vendors can implement the provider/session interfaces and optional attachment capability. 1Password and LastPass are not yet shipped adapters.
 
 ## Native tasks
 
-- `gpg-restore`: checks the local identity before vault access, verifies the complete primary-key set and passphrase protection in a private temporary keyring, then imports into the invoking user's GPG home. Trust and Git commit signing are explicit options. GPG must already be installed.
-- `gpg-backup`: exports protected private material, verifies it in a temporary keyring, uploads and downloads the new attachment for verification before deleting the old attachment. Requires a write-authorized binding and `writeProfile`, which must be explicitly selected. Optional `publicSource` and `revocationSource` bindings keep those artifacts separate; a missing local revocation certificate is omitted. A failed cleanup leaves both versions rather than deleting the verified backup.
+- `gpg-restore` checks the local identity before vault access. It checks the complete primary-key set and passphrase protection in a private temporary keyring. It then imports into the invoking user's GPG home. Trust and Git commit signing are explicit options. GPG must already be installed.
+- `gpg-backup` exports protected private material and checks it in a temporary keyring. It uploads the new attachment and downloads it for verification before deleting the old attachment. It requires a write-authorized binding and an explicitly selected `writeProfile`.
+
+  Optional `publicSource` and `revocationSource` bindings keep those artifacts separate. A missing local revocation certificate is omitted. If cleanup fails, both versions remain instead of deleting the verified backup.
 - `keyring`: materializes the named `credential` into the OS keyring under a connection/account/credential namespace. The credential must declare `references` for that connection so runtime reads use the same namespace. Provider-sourced TOTP values cannot be persisted. This is an explicit write, not an automatic cache of every lookup.
 
-Private keys, passphrases and sessions are never journaled. Status reports prior setup without claiming the vault is currently unlocked. Uninstall reports credentials as non-reversible; it does not delete keys, accounts or remote vault contents. Dry-run does not probe a provider, fetch/materialize secrets, or import/export/upload keys.
+Private keys, passphrases and sessions are never journaled. Status reports prior setup without claiming the vault is currently unlocked. Uninstall reports credentials as non-reversible. It does not delete keys, accounts or remote vault contents. Dry-run does not probe a provider, fetch/materialize secrets, or import/export/upload keys.
 
 ## Dependencies for scripts and files
 
@@ -113,23 +127,21 @@ scripts:
     onCredentialUnavailable: skip
 ```
 
-The selected child gets `RWR_CRED_DEPLOY_TOKEN`; unrelated children do not. Declared source environment variables and provider session variables are withheld from ordinary child environments; use the scoped `RWR_CRED_` export in consumers. Scope/exposure are access permissions, not proof that a resource needs the secret. `requiresCredentials` and `onCredentialUnavailable` are supported on scripts, files, templates and directories. Simple `{{ .Credentials.name }}` references in inline content also declare demand; template files are scanned for credential references. Structural decoding preserves symbolic references until the consumer runs. Secrets cannot be substituted into metadata, paths or argv. Credential-bearing inline files default to mode 0600 and reject permissions for other users.
+Only the selected child receives `RWR_CRED_DEPLOY_TOKEN`. Ordinary children do not receive declared source environment variables or provider session variables. Use the scoped `RWR_CRED_` export in consumers. Scope and exposure grant access but do not prove a resource needs the secret.
 
-Opaque scripts that invoke `bw` themselves remain arbitrary user code. Migrate those to native credential tasks or declare their dependencies; RWR cannot infer vault calls from shell text. See [the native Bitwarden example](../examples/bitwarden/README.md).
+Scripts, files, templates, and directories support `requiresCredentials` and `onCredentialUnavailable`. Simple `{{ .Credentials.name }}` references in inline content also declare demand. RWR scans template files for credential references. Structural decoding preserves symbolic references until the consumer runs.
+
+RWR does not substitute secrets into metadata, paths, or argv. Credential-bearing inline files default to mode `0600` and reject permissions for other users.
+
+Scripts that call `bw` themselves remain arbitrary user code. Migrate them to native credential tasks or declare their dependencies. RWR cannot infer vault calls from shell text. See [the native Bitwarden example](../examples/bitwarden/README.md).
 
 ### Where RWR stores a credential
 
-RWR persists a managed credential only in the OS keyring - Secret Service on
-Linux, Keychain on macOS, Credential Manager on Windows - and only when you
-agree. By default, RWR does not write a managed credential to a plaintext file.
+RWR stores managed credentials only in the OS keyring, and only with your consent. The backends are Secret Service on Linux, Keychain on macOS, and Credential Manager on Windows. By default, RWR does not write managed credentials to plaintext files.
 
-The two built-in credentials retain their grandfathered config-file fallback:
-`repository.gh_api_token` and `repository.ssh_private_key` keep working. New
-GitHub tokens and keys selected by `set_as_rwr_ssh_key` go to the keyring first;
-when no keyring backend is available, RWR falls back to the config file at
-`0600` and warns with the file path. When a generated SSH key moves into the
-keyring successfully, RWR attempts to clear an older plaintext config value so
-it cannot override the new key on the next run. A cleanup failure is reported.
+The built-in credentials `repository.gh_api_token` and `repository.ssh_private_key` retain their existing configuration-file fallback. New GitHub tokens and keys selected by `set_as_rwr_ssh_key` go to the keyring first. If no keyring backend is available, RWR uses the configuration file with mode `0600` and warns with its path.
+
+After storing a generated SSH key in the keyring, RWR attempts to clear its older plaintext configuration value. This prevents that value from overriding the new key on the next run. RWR reports cleanup failures.
 
 ## How to permit a credential
 
@@ -157,7 +169,7 @@ These names are correct:
 |---|---|
 | `gh_api_token` | `repository.gh_api_token` |
 | `ssh_private_key` | `repository.ssh_private_key` |
-| `bw_session` | Legacy built-in name; native provider sessions are private and are never published through this credential |
+| `bw_session` | Legacy built-in name. Native provider sessions are private and are never published through this credential |
 
 RWR gives a warning at start when a credential is available. The change is
 always visible.
@@ -171,7 +183,7 @@ in a script as `RWR_CRED_<NAME>`:
 password={{ .Credentials.deploy_token }}
 ```
 
-Template content can receive the exposed value. Scripts should use the declared child environment and pass values to tools through stdin or a supported secret environment variable. Do not place secret values in command arguments.
+Template content can receive the exposed value. For scripts, use the declared child environment. Pass values to tools through stdin or a supported secret environment variable. Do not place secret values in command arguments.
 
 The two built-in credentials keep their original names. In a template:
 
@@ -210,4 +222,4 @@ credentials also.
 If you must see a value in the logs, use the `--show-secrets` flag. RWR gives a
 warning while this flag is active.
 
-Bootstrap runs before credential providers. Credential templates and `requiresCredentials` are rejected in bootstrap; put those resources in regular blueprints and run credential setup separately.
+Bootstrap runs before credential providers. Credential templates and `requiresCredentials` are rejected in bootstrap. Put those resources in regular blueprints, and run credential setup separately.

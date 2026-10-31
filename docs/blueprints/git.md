@@ -1,13 +1,13 @@
 # Git Blueprint
 
-The Git blueprint in Rinse, Wash, Repeat (RWR) allows you to clone and manage Git repositories as part of your system configuration. This page describes how to define and use the Git blueprint.
+The Git blueprint clones and manages Git repositories as part of your system configuration.
 
 See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 `import`, `interactive`, and the rule that an unknown key is an error.
 
 ## Blueprint Structure
 
-The Git blueprint follows a specific structure to define the repositories to be cloned and managed. Here's an example of a Git blueprint in YAML format:
+Clone and manage Git repositories:
 
 ```yaml
 git:
@@ -33,10 +33,10 @@ The following settings are available for each repository in the Git blueprint:
 |---------|----------|-------------|
 | `name` | Yes, if `import` is not provided | A unique name for the repository |
 | `import` | Yes, if `name` is not provided | Path to import git repository definitions from another file (relative to blueprint directory) |
-| `action` | No | `clone` or `pull`. Empty or `clone` clones when `path` does not exist and pulls when it does; `pull` requires something to already be checked out at `path`. Any other value is an error |
+| `action` | No | `clone` or `pull`. Empty or `clone` clones when `path` does not exist and pulls when it does. `pull` requires something to already be checked out at `path`. Any other value is an error |
 | `url` | Yes | The URL of the Git repository to clone |
 | `branch` | No | The branch to clone (defaults to the repository's default branch) |
-| `path` | Yes | The local path where the repository should be cloned |
+| `path` | Yes | The local path where the repository will be cloned |
 | `private` | No | Indicates whether the repository is private (defaults to `false`) |
 | `profiles` | No | List of profiles this repository belongs to. If empty, repository is always cloned (base item) |
 | `interactive` | No | Accepted by the schema but **not read** by the git processor: clones and pulls run the same way whatever it is set to |
@@ -59,14 +59,13 @@ git:
       - dev
 ```
 
-This allows you to maintain common repository lists separately from project-specific ones.
 
 ## Private Repositories
 
 To clone private repositories, you need to provide authentication details. RWR supports two authentication methods:
 
 1. GitHub API Key: Set the `--gh-api-key` flag or configure the `repository.gh_api_token` setting in the configuration file.
-2. SSH Key: Set the `--ssh-key` flag or configure the `repository.ssh_private_key` setting in the configuration file. The SSH key should be base64 encoded.
+2. To use an SSH key, pass `--ssh-key` or set `repository.ssh_private_key` in the configuration file. Encode the key in Base64.
 
 ## Examples
 

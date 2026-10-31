@@ -6,10 +6,10 @@ type, and the one decoding rule that applies to all of them.
 ## Unknown keys are an error
 
 > [!IMPORTANT]
-> Blueprints decode strictly, in YAML, JSON, TOML and CUE alike. A key the blueprint
-> type does not define - a misspelled `pacakges:`, a `profile:` that should have
-> been `profiles:` - stops the run with an error naming the file and, for YAML,
-> the line.
+> RWR decodes YAML, JSON, TOML, and CUE blueprints strictly.
+> An unknown key stops the run.
+> Examples include the misspelling `pacakges:` and the singular `profile:` instead of `profiles:`.
+> The error names the file and, for YAML, the line.
 
 An unknown key used to be dropped in silence. A misspelled section then produced
 an empty list, every processor found nothing to do, and the run reported success
@@ -43,11 +43,9 @@ packages:
 
 ## `import`
 
-`import` names another blueprint file to pull entries from. The path is resolved
-relative to the file that declares it, imports may be nested, and circular
-imports are detected and refused. An import entry does not also declare
-resources. It may still carry `profiles`; an Omarchy configuration import also
-needs `tool: omarchy` so the configuration processor can route it.
+`import` pulls entries from another blueprint file. RWR resolves the path relative to the file that declares it. Imports can be nested. RWR detects and rejects circular imports.
+
+An import entry cannot also declare resources, but it can carry `profiles`. An Omarchy configuration import also needs `tool: omarchy` so the configuration processor can route it.
 
 Supported by: `packages`, `repositories`, `files`, `templates`, `directories`,
 `git`, `scripts`, `services`, `ssh_keys`, `users`, `groups`, `credential_setup`,
@@ -68,7 +66,7 @@ supported at all by `fonts`, `groups` or `configurations`.
 
 ## `schema_version`
 
-Every blueprint file may declare a `schema_version` at the top level, next to
+Every blueprint file can declare a `schema_version` at the top level, next to
 its entry list:
 
 ```yaml
@@ -78,10 +76,7 @@ packages:
     action: install
 ```
 
-A file's declaration overrides the tree-wide version from the init file, which
-is how a single blueprint can move to a newer schema while the rest of the tree
-stays put. Today every blueprint type supports only version `1`; declaring a
-version a type does not support is an error.
+A file's `schema_version` overrides the tree-wide version in the init file. This lets one blueprint change schema versions without changing the rest of the tree. Every blueprint type currently supports only version `1`. RWR rejects a version the type does not support.
 
 ## `name` and `names`
 

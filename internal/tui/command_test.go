@@ -14,11 +14,34 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/freehold-digital/rwr/internal/processors"
 	"github.com/freehold-digital/rwr/internal/prompts"
 	"github.com/freehold-digital/rwr/internal/reporting"
 	"github.com/freehold-digital/rwr/internal/system"
 	"github.com/freehold-digital/rwr/internal/types"
 )
+
+const managedSudoFixture = `#!/bin/sh
+case "$1" in
+  -n) exit 1 ;;
+  -S)
+    [ "$2" = '-p' ] && [ "$3" = '' ] && [ "$4" = '-v' ] || exit 2
+    IFS= read -r password
+    [ "$password" = 'sudo-fixture-password' ] || exit 3
+    exit 0 ;;
+  -A)
+    if [ "$RWR_TEST_SUDO_POLICY" != 'cached' ]; then
+      password=$("$SUDO_ASKPASS") || exit 4
+      [ "$password" = 'sudo-fixture-password' ] || exit 5
+    fi
+    shift
+    if [ "$1" = '-u' ]; then shift 2; fi
+    [ "$1" = '--' ] || exit 6
+    shift
+    exec "$@" ;;
+  *) exit 7 ;;
+esac
+`
 
 func TestWarmSudoProbeCannotSuppressPasswordPrompt(t *testing.T) {
 	for _, mode := range []string{"captured", "interactive", "output"} {
@@ -109,17 +132,7 @@ func TestProductionSudoPasswordAfterGitHubPopup(t *testing.T) {
 	// Use the real executor and validation subprocess, with a local sudo
 	// fixture so the test never changes host credentials or runs as root.
 	dir := t.TempDir()
-	err := os.WriteFile(filepath.Join(dir, "sudo"), []byte(`#!/bin/sh
-[ "$1" = '-S' ] || exit 1
-[ "$2" = '-p' ] && [ "$3" = '' ] || exit 2
-IFS= read -r password
-[ "$password" = 'sudo-fixture-password' ] || exit 3
-shift 3
-[ "$1" = '-v' ] && exit 0
-[ "$1" = '--' ] || exit 4
-shift
-exec "$@"
-`), 0700)
+	err := os.WriteFile(filepath.Join(dir, "sudo"), []byte(managedSudoFixture), 0700)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,6 +184,129 @@ exec "$@"
 	}))
 	if !<-checked {
 		t.Fatal("elevated command output was missing or contained the sudo password")
+	}
+}
+
+func TestColdSudoReusesOneMaskedPromptAcrossCommands(t *testing.T) {
+	for _, mode := range []string{"captured", "interactive", "output"} {
+		for _, policy := range []string{"required", "cached"} {
+			t.Run(mode+"/"+policy, func(t *testing.T) {
+				dir := t.TempDir()
+				if err := os.WriteFile(filepath.Join(dir, "sudo"), []byte(managedSudoFixture), 0700); err != nil {
+					t.Fatal(err)
+				}
+				t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+				t.Cleanup(system.BeginRun())
+				p := startFormProgram(t)
+				result := make(chan error, 1)
+				go func() {
+					for i := range 3 {
+						cmd := types.Command{
+							Exec: "sh", Args: []string{"-c", `IFS= read -r supplied; test "$supplied" = child-input || exit 8`},
+							Elevated: true, Interactive: mode == "interactive", Stdin: "child-input\n",
+							Variables: map[string]string{"RWR_TEST_SUDO_POLICY": policy},
+						}
+						if i == 1 {
+							cmd.Elevated, cmd.AsUser = false, "builder"
+						}
+						var err error
+						if mode == "output" {
+							_, err = system.RunCommandOutput(cmd, false)
+						} else {
+							err = system.RunCommand(cmd, false)
+						}
+						if err != nil {
+							result <- err
+							return
+						}
+					}
+					result <- nil
+				}()
+				waitFormView(t, p, "sudo password")
+				p.Send(tea.PasteMsg{Content: "sudo-fixture-password"})
+				checked := make(chan bool, 1)
+				p.Send(inspectForm(func(m *Model) {
+					view := m.View().Content
+					checked <- strings.Contains(view, "•••") && !strings.Contains(view, "sudo-fixture-password")
+				}))
+				if !<-checked {
+					t.Fatal("first sudo prompt did not retain its masked typing feedback")
+				}
+				p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
+				select {
+				case err := <-result:
+					if err != nil {
+						t.Fatal(err)
+					}
+				// Race-instrumented askpass helpers each delay process exit, so
+				// allow enough time for all three separate sudo invocations.
+				case <-time.After(10 * time.Second):
+					t.Fatal("later sudo command requested input again or consumed the command's supplied stdin")
+				}
+			})
+		}
+	}
+}
+
+func TestOrdinaryScriptsUseLazyManagedNestedSudo(t *testing.T) {
+	for _, interactive := range []bool{false, true} {
+		name := "captured"
+		interactiveField := ""
+		if interactive {
+			name, interactiveField = "interactive", "    interactive: true\n"
+		}
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			if err := os.WriteFile(filepath.Join(dir, "sudo"), []byte(managedSudoFixture), 0700); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+			t.Cleanup(system.BeginRun())
+			p := startFormProgram(t)
+			shell, err := exec.LookPath("sh")
+			if err != nil {
+				t.Fatal(err)
+			}
+			info := &types.OSInfo{}
+			info.System.OS = "linux"
+			info.Tools.Bash = types.ToolInfo{Exists: true, Bin: shell}
+			blueprint := "scripts:\n"
+			for _, script := range []struct{ name, content string }{
+				{"plain", "echo script-before-sudo"},
+				{"first-sudo", "sudo -- sh -c 'exit 0'"},
+				{"second-sudo", "sudo -- sh -c 'exit 0'"},
+			} {
+				blueprint += "  - name: " + script.name + "\n    action: run\n    exec: bash\n    content: \"" + script.content + "\"\n" + interactiveField
+			}
+			result := make(chan error, 1)
+			go func() {
+				result <- processors.ProcessScripts([]byte(blueprint), dir, "yaml", info, &types.InitConfig{})
+			}()
+			waitFormView(t, p, "sudo password")
+			checked := make(chan bool, 1)
+			p.Send(inspectForm(func(m *Model) {
+				for _, record := range m.store.Records(m.store.NewView("")) {
+					if strings.Contains(record.Msg, "script-before-sudo") {
+						checked <- true
+						return
+					}
+				}
+				checked <- false
+			}))
+			if !<-checked {
+				t.Fatal("script that never invokes sudo requested authentication")
+			}
+			p.Send(tea.PasteMsg{Content: "sudo-fixture-password"})
+			p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
+			select {
+			case err := <-result:
+				if err != nil {
+					t.Fatal(err)
+				}
+			case <-time.After(10 * time.Second):
+				t.Fatal("nested sudo failed to reuse the first script's managed authentication")
+			}
+		})
 	}
 }
 

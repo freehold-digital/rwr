@@ -14,6 +14,10 @@ import (
 	"github.com/freehold-digital/rwr/internal/types"
 )
 
+type sudoInlineReporter struct{ recordingReporter }
+
+func (*sudoInlineReporter) SupportsInlinePrompts() bool { return true }
+
 // The guard decides which commands get the terminal when sudo is not already
 // cached, so that a password prompt the work itself makes is visible rather
 // than hidden behind the dashboard. It never causes rwr to ask on its own
@@ -45,6 +49,11 @@ func TestSudoTerminalHandoverCoversCommandsThatEscalateThemselves(t *testing.T) 
 			// still shells out to sudo for a cask install.
 			name: "unprivileged but escalates itself",
 			cmd:  types.Command{Exec: "brew", Escalates: true},
+			want: true,
+		},
+		{
+			name: "script may escalate",
+			cmd:  types.Command{Exec: "bash", MayEscalate: true},
 			want: true,
 		},
 		{
@@ -133,33 +142,39 @@ func TestCancelledPasswordPromptMapsToRunCancellation(t *testing.T) {
 	}
 }
 
-func TestAuthenticatedCommandRunsTheTargetInThePasswordReceivingSudo(t *testing.T) {
-	t.Parallel()
-
-	command := buildAuthenticatedCommand(types.Command{
-		Exec:     "dscl",
-		Args:     []string{".", "-create", "/Users/levi", "UserShell", "/opt/homebrew/bin/fish"},
-		Elevated: true,
-	})
-	want := []string{"sudo", "-S", "-p", "", "--", "dscl", ".", "-create", "/Users/levi", "UserShell", "/opt/homebrew/bin/fish"}
-	if !slices.Equal(command.Args, want) {
-		t.Fatalf("authenticated argv = %q, want %q", command.Args, want)
+func TestManagedSudoUsesAskpassWithoutAuthenticationOnCommandStdin(t *testing.T) {
+	if runtime.GOOS == types.OSWindows {
+		t.Skip("no sudo on windows")
+	}
+	defer reporting.Set(&sudoInlineReporter{})()
+	defer SetSudoProbeForTest(func(context.Context) error { return nil })()
+	resetSudoThrottleForTest()
+	defer resetSudoThrottleForTest()
+	for _, cmd := range []types.Command{
+		{Exec: "chpasswd", Elevated: true, Stdin: "target input\n"},
+		{Exec: "makepkg", AsUser: "builder", Stdin: "target input\n"},
+	} {
+		command, err := commandForRun(cmd)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := []string{"sudo", "-A", "--", cmd.Exec}
+		if cmd.AsUser != "" {
+			want = []string{"sudo", "-A", "-u", cmd.AsUser, "--", cmd.Exec}
+		}
+		if !slices.Equal(command.Args, want) || command.Stdin != nil {
+			t.Fatalf("managed sudo = %q, stdin %T; want %q with no authentication input", command.Args, command.Stdin, want)
+		}
 	}
 }
 
-func TestPasswordInputKeepsSecretOutOfArgvAndPreservesCommandInput(t *testing.T) {
+func TestPasswordInputIsOnlyANewlineTerminatedPassword(t *testing.T) {
 	t.Parallel()
 
 	password := []byte("correct horse battery staple")
-	input := passwordInput(password, "target input\n")
-	if got, want := string(input), "correct horse battery staple\ntarget input\n"; got != want {
-		t.Fatalf("stdin = %q, want %q", got, want)
-	}
-	command := buildAuthenticatedCommand(types.Command{Exec: "chpasswd", Elevated: true})
-	for _, arg := range command.Args {
-		if strings.Contains(arg, "correct horse") {
-			t.Fatal("password appeared in sudo argv")
-		}
+	input := passwordInput(password)
+	if got, want := string(input), "correct horse battery staple\n"; got != want {
+		t.Fatalf("password input = %q, want %q", got, want)
 	}
 }
 
@@ -275,6 +290,7 @@ func TestPromptedPasswordIsReusedBySeparateManagedSudo(t *testing.T) {
 		t.Skip("no sudo on windows")
 	}
 
+	defer reporting.Set(&sudoInlineReporter{})()
 	defer SetSudoProbeForTest(func(context.Context) error { return errors.New("cold") })()
 	var prompts int
 	var validations int
@@ -293,14 +309,13 @@ func TestPromptedPasswordIsReusedBySeparateManagedSudo(t *testing.T) {
 		t.Fatalf("warming for self-escalating command: %v", err)
 	}
 	for range 2 {
-		command, input, err := commandForRun(types.Command{Exec: "dscl", Elevated: true})
+		command, err := commandForRun(types.Command{Exec: "dscl", Elevated: true})
 		if err != nil {
 			t.Fatalf("commandForRun: %v", err)
 		}
-		if !slices.Equal(command.Args, []string{"sudo", "-S", "-p", "", "--", "dscl"}) {
-			t.Fatalf("managed command argv = %q, want password-bound sudo", command.Args)
+		if !slices.Equal(command.Args, []string{"sudo", "-A", "--", "dscl"}) || command.Stdin != nil {
+			t.Fatalf("managed command argv = %q, want askpass sudo with no authentication input", command.Args)
 		}
-		zeroBytes(input)
 	}
 	if prompts != 1 {
 		t.Fatalf("password prompts = %d, want the run-scoped password reused", prompts)

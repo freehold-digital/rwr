@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides practical tips and examples for using profiles effectively in RWR configurations. These are suggestions based on common use cases, not rules you must follow.
+Use these optional recommendations and examples to organize profiles in RWR configurations.
 
 ## Common Use Cases
 
@@ -97,7 +97,7 @@ packages:
 
 ### Technology Stacks
 
-Group tools by the technologies you're working with.
+Group tools by the technologies you are working with.
 
 ```yaml
 packages:
@@ -134,45 +134,19 @@ packages:
       - datascience
 ```
 
-## Multiple Profiles
-
-Items can belong to multiple profiles, which is useful for shared tools.
-
-```yaml
-packages:
-  # Shared across multiple contexts
-  - names:
-      - docker
-      - git
-      - tmux
-    action: install
-    profiles:
-      - backend
-      - frontend
-      - devops
-
-  # Specific to one context
-  - names:
-      - react-native-cli
-      - android-studio
-    action: install
-    profiles:
-      - mobile
-```
-
 ## Profile Discovery
 
-Use the profiles command to understand what's available in your configuration.
+Use `rwr profiles` to inspect the profiles available in your configuration. It
+prints every declared profile with a count of the entries carrying it:
 
 ```bash
-# See all available profiles
 rwr profiles
+```
 
-# See what would be installed for a profile
-rwr profiles --show development
+For a per-entry breakdown, use a dry run:
 
-# Get statistics about profile usage
-rwr profiles --stats
+```bash
+rwr all --profile development --dry-run
 ```
 
 ## Testing Configurations
@@ -189,24 +163,9 @@ rwr all --profile frontend --profile development --dry-run
 
 ## Organization Tips
 
-### Start Simple
+### Start simple
 
-Begin with basic profiles and add complexity as needed.
-
-```yaml
-# Start with this
-packages:
-  - names:
-      - git
-    action: install
-  - names:
-      - docker
-    action: install
-    profiles:
-      - dev
-
-# Add more later as you understand your needs
-```
+Begin with one or two profiles and add more when a real need appears.
 
 ### Use Meaningful Names
 
@@ -262,12 +221,9 @@ packages:
 
 ### Guard Scripts for Machines That Lack the Subject
 
-Profile-gated items are opt-in: they run only when their profile is named.
-The remaining risk is a forgotten `--profile data-drives` on the one machine
-that needs it - the gated item silently does not run. A script gated behind a
-profile therefore needs to survive running on a machine that was never meant
-for it, because the inverse mistake (adding the profile to a run for a machine
-without the hardware) is just as easy.
+Profile-gated items run only when their profile is named. If you forget `--profile data-drives` on a machine that needs it, RWR silently skips the gated item.
+
+The reverse mistake is selecting a profile on a machine without the required hardware. Profile-gated scripts need to tolerate running on machines they were not intended for.
 
 The pattern is: check for the subject, and leave quietly when it is not
 there. Fail loudly only for a prerequisite the operator can fix (a missing
@@ -295,25 +251,6 @@ For a complete example of the pattern, see
 [examples/bitwarden](../examples/bitwarden/README.md), whose backup and
 restore scripts are built from it.
 
-### Profile Inheritance
-
-You can simulate inheritance by using multiple profiles.
-
-```yaml
-packages:
-  # Basic development tools
-  - name: git
-    action: install
-    profiles: [dev-basic]
-
-  # Advanced development tools
-  - name: docker
-    action: install
-    profiles: [dev-advanced]
-
-  # Use both: --profile dev-basic --profile dev-advanced
-```
-
 ### Environment-Specific Configs
 
 Use profiles for different deployment environments.
@@ -335,38 +272,26 @@ files:
 
 ### Profile Not Working
 
-If a profile doesn't seem to be working:
+If a profile does not seem to be working:
 
 1. Check the profile name matches exactly (case-sensitive)
 2. Verify the profile exists in your configuration
-3. Use `rwr profiles --show <profile-name>` to see what should be included
+3. Run `rwr profiles` to see every declared profile with its entry count
 
 ### Unexpected Installations
 
-If you're getting unexpected packages:
+If you are getting unexpected packages:
 
 1. Remember base items (no profiles field, or an empty one) always apply
 2. Check if items belong to multiple profiles you activated
 3. Remember `--profile all` activates every item, gated or not
 4. Use `--dry-run` to preview what will be installed
 
-## Performance Considerations
+## Performance considerations
 
-### Large Configurations
+For large trees, run one profile rather than `--profile all`: fewer items means a shorter run and fewer package-manager calls.
 
-For large configurations with many profiles:
-
-```bash
-# Only install what you need
-rwr all --profile specific-profile
-
-# Rather than installing everything
-rwr all --profile all
-```
-
-### Profile Combinations
-
-Be mindful of profile combinations that might install conflicting software.
+Check profile combinations for conflicting software.
 
 ```yaml
 packages:
@@ -381,5 +306,3 @@ packages:
   # Document the conflict in comments
   # Note: Don't use 'legacy' and 'modern' profiles together
 ```
-
-This guide provides practical examples without telling you how you must organize your profiles. Use what works for your specific needs and context.

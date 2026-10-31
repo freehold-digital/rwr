@@ -12,7 +12,7 @@ rwr convert --to cue --write path/to/tree
 ```
 
 Every blueprint, init, bootstrap, and manifest file is decoded and re-encoded
-in the target format; originals are replaced only under `--write`.
+in the target format. Originals are replaced only under `--write`.
 
 Limits, stated plainly:
 
@@ -34,10 +34,6 @@ rwr convert --migrate --write path/to/tree
 
 Rewrites deprecated constructs. Current rules:
 
-- **Init-file inline resource sections** (`packages:`, `repositories:`, …
-  declared in `init.yaml`) move into blueprint files under the tree
-  (`packages/from-init.yaml`, …). These sections were removed from the init
-  schema - they were decoded and never applied - and an init file still
-  carrying them is an error until migrated.
+- Inline resource sections such as `packages:` and `repositories:` move from `init.yaml` into blueprint files such as `packages/from-init.yaml`. RWR previously decoded these sections without applying them. They no longer belong to the init schema. An init file containing them is invalid until migrated.
 
 `--to` and `--migrate` compose in one invocation.
