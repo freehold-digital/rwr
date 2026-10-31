@@ -15,11 +15,11 @@ The following flags are available for all commands:
 | `--gh-api-key` | Specify the GitHub API key for accessing private repositories |
 | `--ssh-key` | Path to an SSH key file, or a Base64-encoded SSH key, for Git authentication |
 | `--skip-version-check` | Do not check GitHub for a newer release at startup |
-| `--show-secrets` | Print credential values in logs instead of redacting them. Off by default; use it only to confirm RWR is reading the token or key you expect |
+| `--show-secrets` | Print credential values in logs instead of redacting them. Off by default. Use it only to confirm RWR is reading the token or key you expect |
 | `--dry-run`, `-n` | Simulate operations without making changes (no-op mode) |
 | `--no-op` | Alias for `--dry-run` |
 | `--interactive`, `-I` | Enable interactive per-item prompts (default: true). Use `--interactive=false` to disable. Capital `-I` - lowercase `-i` is `--init-file` |
-| `--gh-key` | Deprecated alias for `--gh-api-key`; use `--gh-api-key` |
+| `--gh-key` | Deprecated alias for `--gh-api-key`. Use `--gh-api-key` |
 | `--gh-auth` | Get a GitHub token with the OAuth device flow. Only `rwr all` and `rwr run ssh_keys` act on it |
 | `--profile`, `-p` | Make a profile active. Repeat the flag, or give a comma-separated list |
 | `--force-bootstrap` | Run the bootstrap process again |
@@ -30,20 +30,16 @@ blueprint source, RWR does not create its target directory or parent directories
 
 ### The startup version check
 
-Unless `--skip-version-check` is given, RWR asks the GitHub releases API for the
-latest release when a command starts, and prints one line to stderr if the
-binary is older:
+When a command starts, RWR asks the GitHub releases API for the latest release unless `--skip-version-check` is set. If the installed binary is older, RWR prints one line to stderr:
 
 ```text
 rwr: a newer version is available: 0.6.0 (you have 0.5.2)
 rwr: https://github.com/freehold-digital/rwr/releases/latest (silence with --skip-version-check)
 ```
 
-The check is advisory and never fails the run: a two-second timeout, and every
-error - no network, a rate limit, an unexpected response - is a debug log and
-nothing more. It is also skipped for a development build (one built with plain
-`go build`, or from a modified tree), and for `rwr help`, `rwr config`,
-`rwr version` and `rwr validate`, which do no version check at all.
+The version check is advisory and never fails the run. It times out after two seconds. Network failures, rate limits, unexpected responses, and other errors produce debug logs only.
+
+Development builds skip the check, including plain `go build` binaries and builds from modified trees. The commands `rwr help`, `rwr config`, `rwr version`, and `rwr validate` also skip it.
 
 > [!NOTE]
 > Only the flag turns the check off. There is no configuration-file or
@@ -73,7 +69,7 @@ go:         go1.26.5 linux/amd64
 ```
 
 The `commit`, `built`, `built by` and `tree state` lines are printed only when
-the binary carries that information; the `go` line is always printed. A release
+the binary carries that information. The `go` line is always printed. A release
 or nightly binary carries the commit it was built from, so a binary on disk can
 be traced back to its source.
 
@@ -94,11 +90,11 @@ View, edit, or create the RWR configuration.
 
 | Subcommand | Description |
 |------------|-------------|
-| `view` | Print the effective merged configuration with per-key sources. Secrets show as `[redacted]`; `--show-secrets` reveals them |
-| `edit` | Open the config file in `$VISUAL`/`$EDITOR` (created first if missing; re-parsed after, warning if broken) |
+| `view` | Print the effective merged configuration with per-key sources. Secrets show as `[redacted]`. `--show-secrets` reveals them |
+| `edit` | Opens the configuration file in `$VISUAL` or `$EDITOR`. Creates it first if missing. Parses it afterward and warns if invalid |
 | `create` | Create the configuration file, prompting for each setting |
 
-`--create`/`-c` is deprecated; use `rwr config create`.
+`--create`/`-c` is deprecated. Use `rwr config create`.
 
 ### `rwr all`
 
@@ -108,11 +104,9 @@ Run all blueprints and set up the system.
 
 ### `rwr bootstrap`
 
-Run just the bootstrap processor (`rwr run bootstrap` works too). Asking for
-bootstrap by name implies wanting it to run, so this ignores the run-once
-marker that keeps `rwr all` idempotent - no `--force-bootstrap` needed. The
-marker is refreshed on success, `--dry-run` is honored, and a tree without a
-bootstrap file is an error naming the filenames searched.
+Run only the bootstrap processor. The alias `rwr run bootstrap` works too. An explicit invocation ignores the run-once marker, so it does not need `--force-bootstrap`.
+
+RWR refreshes the marker on success and honors `--dry-run`. If the tree has no bootstrap file, RWR reports an error naming the files it searched for.
 ### `rwr status`
 
 Show desired-vs-actual drift without applying anything. Read-only, never
@@ -120,9 +114,7 @@ elevates, exits 1 on drift. See [Run records](../state.md).
 
 ### `rwr uninstall`
 
-Reverse what recorded runs applied - and only that. Refuses without a run
-record; prints the not-reversible list up front; `--yes` skips the prompt.
-See [Run records](../state.md).
+Reverse only what recorded runs applied. Without a run record, the command refuses to run. It prints the list of non-reversible changes before confirmation. `--yes` skips the prompt. See [Run records](../state.md).
 
 | Flag | Description |
 |------|-------------|
@@ -156,9 +148,7 @@ items that carry each one. This command has no flags of its own.
 
 ### `rwr run`
 
-Run one processor instead of the whole blueprint. `rwr run` needs the name of a
-processor: on its own, or with a name that is not in the list below, it prints
-the list and exits with an error.
+Run one processor instead of the whole blueprint. `rwr run` requires a processor name. If the name is missing or absent from the list below, RWR prints the list and exits with an error.
 
 #### `rwr run packages`
 
@@ -246,4 +236,4 @@ post-login entries declared with `tool: omarchy`. See the
 
 ## Credential setup and exclusions
 
-`rwr run credentials --profile bitwarden` runs native credential setup after provisioning. `--except credentials,fonts` (repeatable) excludes processors; excluding credentials also denies managed vault access. See [credentials](../credentials.md) for init defaults, selection precedence, dependencies and native tasks.
+`rwr run credentials --profile bitwarden` runs native credential setup after provisioning. `--except credentials,fonts` (repeatable) excludes processors. Excluding credentials also denies managed vault access. See [credentials](../credentials.md) for init defaults, selection precedence, dependencies and native tasks.

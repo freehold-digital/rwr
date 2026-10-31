@@ -1,6 +1,6 @@
 # The Fonts Blueprint
 
-The Fonts Blueprint in Rinse, Wash, Repeat (RWR) installs and removes Nerd Fonts. Nerd Fonts is the only provider that exists; each entry names a font in the [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) releases.
+The Fonts Blueprint in Rinse, Wash, Repeat (RWR) installs and removes Nerd Fonts. Nerd Fonts is the only provider that exists. Each entry names a font in the [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) releases.
 
 See [Fields Common to Every Blueprint](common-fields.md) for the rule that an
 unknown key is an error.
@@ -33,7 +33,7 @@ The following settings are available for the Fonts Blueprint:
 | `name` | Yes* | The name of the font to manage, exactly as the nerd-fonts release names its archive - `Hack`, `FiraCode`, `JetBrainsMono`. It must not contain a path separator or `..` |
 | `names` | Yes* | A list of font names to manage. The rest of the entry is repeated for each |
 | `action` | Yes | `install` or `remove` |
-| `provider` | No | Defaults to `nerd`. Nerd Fonts is the only implementation; another value is accepted by the schema but changes nothing |
+| `provider` | No | Defaults to `nerd`. Nerd Fonts is the only implementation. Another value is accepted by the schema but changes nothing |
 | `location` | No | `system` installs system-wide. **Any other value, and the default, installs for the current user** |
 | `profiles` | No | Profiles this font belongs to. Empty means it is always processed |
 
@@ -41,20 +41,16 @@ The following settings are available for the Fonts Blueprint:
 skipped.
 
 > [!NOTE]
-> Profiles work for fonts as of this release - the type had no `profiles` field
-> before, so a font entry ran on every machine regardless of what it declared.
-> The fonts blueprint has **no `import` field** and no `interactive` field;
-> writing either one is now a decode error.
+> Profiles work for fonts as of this release.
+> Earlier versions had no `profiles` field, so font entries ran on every machine regardless of their declarations.
+> The Fonts blueprint has no `import` or `interactive` field.
+> Declaring either field now causes a decode error.
 
 ## Font Processing
 
 ### Installation
 
-RWR asks GitHub for the latest nerd-fonts release, downloads `<name>.tar.xz`
-from it, and extracts the `.ttf` members into the font directory. Symlink and
-hard-link members of the archive are skipped, and a member whose path would
-escape the font directory aborts the install. The font cache is then refreshed
-with `fc-cache -f -v`.
+RWR asks GitHub for the latest nerd-fonts release and downloads `<name>.tar.xz`. It extracts `.ttf` members into the font directory and skips symlinks and hard links. If a member's path escapes the font directory, RWR aborts installation. It then refreshes the font cache with `fc-cache -f -v`.
 
 Each extracted face is installed with mode `0644`. Its private staging file is
 removed as soon as that face has been copied, including when a later face fails.
@@ -76,13 +72,12 @@ refreshes the font cache.
 | `system`, Windows | `%WINDIR%\Fonts` |
 | anything else | `$HOME/.local/share/fonts`, on every platform |
 
-A `system` install writes and refreshes the cache with elevation; a per-user one
+A `system` install writes and refreshes the cache with elevation. A per-user one
 does not.
 
 ### Dry runs
 
-`--dry-run` lists the fonts that would be installed and makes no network call,
-so it works offline.
+`--dry-run` lists the planned font installations without making network calls. It works offline.
 
 ## Examples
 
@@ -201,8 +196,8 @@ location = "user"
 ## Notes
 
 - Installing fonts system-wide (`location: system`) requires elevated privileges.
-- There is no way to install every font at once. An entry names one archive; use `names` to list several.
+- There is no way to install every font at once. An entry names one archive. Use `names` to list several.
 - When using the `names` field to specify multiple fonts, all listed fonts are processed with the same action and settings.
-- Installing requires network access to the GitHub API and to the nerd-fonts release assets. `fc-cache` must be on PATH for the cache refresh; a missing one is a warning, not a failure.
+- Installing requires network access to the GitHub API and to the nerd-fonts release assets. `fc-cache` must be on PATH for the cache refresh. A missing one is a warning, not a failure.
 
 For more information on using the Fonts Blueprint in your RWR configuration, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Best Practices](../best-practices.md) guide.

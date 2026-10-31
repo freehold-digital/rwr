@@ -1,8 +1,6 @@
 # RWR documentation
 
-RWR applies a version-controlled description of a workstation. A setup begins
-with an init file, continues into one or more blueprint files, and can be applied
-as a whole or one processor at a time.
+RWR applies a version-controlled description of a workstation. Each setup starts with an init file that leads to one or more blueprint files. You can apply the whole setup or run one processor.
 
 If this is your first visit, follow the [Quick Start](quick-start.md). It creates
 one small text file, validates the tree, previews the change, and applies it.

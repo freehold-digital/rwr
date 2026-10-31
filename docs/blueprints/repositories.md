@@ -17,11 +17,9 @@ repositories:
 
 ## Blueprint Settings
 
-Which of the optional settings matter depends on the package manager: each
-provider declares the steps it runs to add or remove a repository, and those
-steps are Go templates rendered against the values below. A value a provider
-never references is simply unused; a placeholder a provider references and the
-blueprint did not supply is an error naming the repository, not a blank.
+Each package-manager provider declares its repository add and remove steps. RWR renders those steps as Go templates using the values below. The provider determines which optional settings matter.
+
+RWR ignores values the provider never references. If a referenced placeholder has no blueprint value, RWR reports an error naming the repository instead of substituting a blank.
 
 | Setting | Required | Description |
 |---------|----------|-------------|
@@ -30,17 +28,17 @@ blueprint did not supply is an error naming the repository, not a blank.
 | `action` | Yes | `add` or `remove` |
 | `url` | Yes for `add` | The repository URL. A value with no scheme, or a `file://` URL, is treated as a local path - that is what selects the sideload steps for `snap` and `gnome-extensions` |
 | `key_url` | No | URL of the repository's signing key, downloaded to the provider's key directory (apt, dnf, zypper, apk, xbps, eopkg, slackpkg) |
-| `key_sha256` | No | SHA-256 digest of the signing key at `key_url`; the key download is verified against it |
+| `key_sha256` | No | SHA-256 digest of the signing key at `key_url`. The key download is verified against it |
 | `key_id` | No | Key ID to import or delete rather than a URL (pacman family, and the `rpm --erase gpg-pubkey-<id>` step in dnf/zypper removal) |
 | `arch` | No | Architecture written into an apt source line |
 | `channel` | No | Suite/channel written into an apt source line |
 | `component` | No | Component written into an apt source line |
 | `repository` | No | Free-form repository name available to provider steps |
-| `description` | No | Human-readable description; becomes `name=` in a dnf `.repo` file |
+| `description` | No | Human-readable description. Becomes `name=` in a dnf `.repo` file |
 | `overlay_path` | No | Location of a Portage overlay (`emerge`), and what marks a nix entry as an overlay |
 | `sync_type` | No | Portage `sync-type`, e.g. `git` or `rsync` |
 | `sha256` | No | Digest of a fetched nix overlay tarball |
-| `proxy_url` | No | Proxy snapd should route through; setting it adds the `snap set system proxy.*` steps |
+| `proxy_url` | No | Proxy for snapd traffic. Setting it adds the `snap set system proxy.*` steps |
 | `uuid` | No | GNOME extension UUID, used to enable, disable and uninstall the extension |
 | `extension_id` | No | GNOME extension ID, used when installing from extensions.gnome.org |
 | `interface` | No | Snap interface to connect after install (`snap connect <name>:<interface> <slot>`) |
@@ -53,10 +51,7 @@ blueprint did not supply is an error naming the repository, not a blank.
 | `import` | No | See [common fields](common-fields.md) |
 | `interactive` | No | See [common fields](common-fields.md) |
 
-These fields used to be parsed and then dropped: only a bare `{{ .URL }}`
-argument was ever substituted, so an apt add wrote a file literally named
-`{{ .SourcesPath }}/{{ .Name }}.list`. Every field of a provider step is now
-rendered, so the settings above take effect.
+Previously, RWR parsed these fields but dropped their values. It substituted only a bare `{{ .URL }}` argument. An apt add therefore wrote a file literally named `{{ .SourcesPath }}/{{ .Name }}.list`. RWR now renders every field in a provider step, so the settings above take effect.
 
 > [!WARNING]
 > `username`, `password` and `token` are passed to the package manager as
@@ -68,14 +63,13 @@ rendered, so the settings above take effect.
 
 ## Actions and what actually works
 
-Every shipped provider - apt, dnf, zypper, pacman/yay/paru/aura/pamac/trizen,
-apk, xbps, eopkg, emerge, slackpkg, brew, macports, nix, flatpak, snap, cargo,
-chocolatey, scoop, winget, mas, gnome-extensions - defines both `add` and
-`remove` steps, and both work. Provider steps may be gated on predicates RWR
-derives from the entry (`HasKey`, `HasInterfaces`, `ResetSettings`, …), so a
-step for a feature you did not ask for is simply skipped: a snap add without
-`interface` does not run `snap connect`, and a GNOME extension remove resets
-the extension's settings only when `reset_settings: true`.
+Every shipped provider defines working `add` and `remove` steps. The providers are:
+
+- apt, dnf, zypper, pacman, yay, paru, aura, pamac, trizen.
+- apk, xbps, eopkg, emerge, slackpkg, brew, macports, nix.
+- flatpak, snap, cargo, chocolatey, scoop, winget, mas, gnome-extensions.
+
+RWR can gate provider steps on predicates derived from the entry, such as `HasKey`, `HasInterfaces`, or `ResetSettings`. RWR skips steps for features the entry does not request. A snap add without `interface` does not run `snap connect`. Removing a GNOME extension resets its settings only with `reset_settings: true`.
 
 Two more things worth knowing:
 
@@ -190,4 +184,4 @@ url = "homebrew/cask-fonts"
 
 - The Repositories Blueprint is processed by the `rwr run repository` command.
 - The available package managers and their specific settings vary by operating system. See [Providers](../providers.md) for what each one declares.
-- Removing a repository will not automatically remove the packages installed from that repository. You may need to manually remove them using the [Packages Blueprint](packages.md).
+- Removing a repository does not automatically remove its installed packages. If you also want those packages removed, use the [Packages Blueprint](packages.md).

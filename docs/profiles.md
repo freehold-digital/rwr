@@ -1,6 +1,6 @@
 # Profile System
 
-The Profile System is a powerful feature in RWR that allows you to organize and selectively install packages and configurations based on different use cases, environments, or contexts. This page provides a comprehensive guide to understanding and using profiles effectively.
+Profiles group packages and configurations by environment or purpose. You can select which groups RWR applies.
 
 Profile discovery follows nested blueprint imports, including shared files outside
 the selected configuration directory. `rwr profiles` and `--profile` validation
@@ -9,14 +9,14 @@ Listing profiles does not require logging into credential services.
 
 ## Introduction
 
-The RWR Profile System enables you to create flexible, context-aware configurations that can be selectively applied based on your current needs. Whether you're setting up a work environment, gaming setup, or development workstation, profiles let you organize your blueprints for maximum efficiency and reusability.
+Use profiles to share blueprints across work, gaming, and development setups. Each run selects the profiles needed for that setup.
 
 ### Key Benefits
 
-- **Selective Installation**: Install only what you need for specific contexts
-- **Configuration Reuse**: Share common base configurations across different setups
-- **Environment Management**: Easily switch between work, personal, and gaming configurations
-- **Backward Compatibility**: Existing configurations work without modification
+- Select packages and configurations for each context.
+- Share base configurations across setups.
+- Switch between work, personal, and gaming configurations.
+- Existing configurations work without changes.
 
 ## Core Concepts
 
@@ -31,9 +31,10 @@ Items with no profiles field    →  Always installed (the "base" concept)
 ```
 
 > [!IMPORTANT]
-> Profile items are **opt-in**. `rwr all` with no `--profile` applies only the
-> base items; naming a profile is what adds that profile's items on top of the
-> base. Use `--profile all` when you truly want everything.
+> Profile items are opt-in.
+> Without `--profile`, `rwr all` applies only base items.
+> Naming a profile adds its items to the base.
+> Use `--profile all` to include everything.
 
 ### Base Items vs Profile Items
 
@@ -103,7 +104,7 @@ Only **one** keyword is reserved:
 
 - `all` - Installs everything regardless of profiles
 
-**Important**: "base" is NOT a profile name - it's just the conceptual term for items without a `profiles` field.
+"Base" describes items without a `profiles` field. It is not a profile name.
 
 ## CLI Usage
 
@@ -156,7 +157,7 @@ Installs base items + work profile items + gaming profile items.
 rwr all --profile all
 ```
 
-`all` is the reserved profile name; it matches every item regardless of profiles.
+`all` is the reserved profile name. It matches every item regardless of profiles.
 
 ### Profile Discovery
 
@@ -581,7 +582,7 @@ packages:
 
 ### Profile Hierarchies (Conceptual)
 
-While RWR doesn't have built-in profile inheritance, you can achieve similar results with thoughtful profile design:
+RWR has no built-in profile inheritance. The following profile design produces a similar result:
 
 ```yaml
 # Base development tools
@@ -620,23 +621,23 @@ rwr all --profile backend,dev-base
 
 ### Profile Naming
 
-1. **Use Descriptive Names**: Choose names that clearly indicate purpose
+1. Choose profile names that describe their purpose.
    - Good: `work`, `gaming`, `development`
    - Avoid: `p1`, `setup`, `misc`
 
-2. **Be Consistent**: Use consistent naming patterns across your configuration
+2. Use consistent naming patterns across your configuration.
    - Role-based: `work`, `personal`, `gaming`
    - Environment-based: `desktop`, `laptop`, `server`
 
-3. **Avoid Conflicts**: Don't use reserved words or system terms
+3. Avoid reserved words and system terms.
    - Avoid: `all`, `base`, `default`
 
 ### Profile Organization
 
-1. **Start with Base Items**: Identify truly universal packages/configs
-2. **Group Related Items**: Keep related packages in the same profile
-3. **Use Multi-Profile Items**: For packages that serve multiple purposes
-4. **Test Profile Combinations**: Verify that profile combinations work correctly
+1. Identify packages and configurations needed on every machine.
+2. Keep related packages in the same profile.
+3. Assign multiple profiles to packages that serve multiple purposes.
+4. Test profile combinations.
 
 ## Troubleshooting
 
@@ -648,8 +649,7 @@ RWR does not check the names you pass against the ones your blueprints declare.
 `rwr all --profile worx` produces no error and no warning: nothing matches
 `worx`, so only the base items are applied.
 
-**Solution**: Compare against `rwr profiles`. Names are case-sensitive - `Work`
-and `work` are different profiles.
+Compare the names with `rwr profiles`. Names are case-sensitive: `Work` and `work` are different profiles.
 
 #### Fewer Items Than Expected
 
@@ -662,7 +662,7 @@ and `work` are different profiles.
 
 1. Check for items without a `profiles` field - they are base items and always
    apply
-2. Verify multi-profile items aren't matching a profile you did not intend
+2. Check whether multi-profile items match an unintended profile.
 3. Remember `--profile all` activates every item, gated or not
 
 ### Profile Debugging Tips
@@ -700,10 +700,10 @@ There is no per-item line explaining an individual decision.
 
 Existing configurations work without modification. To add profiles:
 
-1. **Identify Base Items**: Items everyone needs regardless of context
-2. **Group Similar Items**: Identify packages that belong together
-3. **Add Profile Fields**: Add `profiles: ["profile-name"]` to appropriate items
-4. **Test Combinations**: Verify different profile combinations work correctly
+1. Identify base items that everyone needs, regardless of context.
+2. Group packages that belong together.
+3. Add `profiles: ["profile-name"]` to the relevant items.
+4. Test profile combinations.
 
 ### Example Migration
 
@@ -744,12 +744,11 @@ packages:
 
 Yes! Profile names are completely user-defined. Use whatever makes sense for your setup.
 
-### What happens if I don't specify any profiles?
+### What runs without a selected profile?
 
-Only the base items are installed: items with one or more profiles are skipped
-until a profile is activated, while an empty `profiles` list still counts as a
-base item. To install the base items and one profile, name that profile:
-`rwr all --profile work`. To install everything, use `rwr all --profile all`.
+Without a selected profile, RWR installs only base items. Entries with one or more profiles are skipped until a profile is selected. An empty `profiles` list counts as a base item.
+
+To install base items and a profile, name it: `rwr all --profile work`. To install everything, use `rwr all --profile all`.
 
 ### Can an item belong to multiple profiles?
 

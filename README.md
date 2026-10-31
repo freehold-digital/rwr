@@ -6,7 +6,7 @@
 
 RWR rebuilds a workstation from a version-controlled set of blueprints. Describe
 the packages, files, repositories, services, accounts, and desktop settings you
-want; RWR validates that description and applies it on Linux, macOS, or Windows.
+want. RWR validates that description and applies it on Linux, macOS, or Windows.
 
 It is built for people who reinstall often, move between machines, or
 want their setup recorded somewhere better than shell history.
@@ -26,7 +26,7 @@ want their setup recorded somewhere better than shell history.
 - **Credential setup on your schedule.** Finish ordinary provisioning first,
   then configure Bitwarden, the OS keyring, or GPG tasks explicitly.
 
-Blueprints can be written in YAML, JSON, TOML, or CUE. A repository may contain
+Blueprints can be written in YAML, JSON, TOML, or CUE. A repository can contain
 one setup or several machine-specific configurations.
 
 ## Install
@@ -91,8 +91,7 @@ rwr all --init-file ./my-blueprints/init.yaml --dry-run
 rwr all --init-file ./my-blueprints/init.yaml
 ```
 
-Once you have a repository you use regularly, `rwr config create` can save its
-init-file location so you do not need to pass `--init-file` on every run.
+Run `rwr config create` to save the init-file location for a repository you use regularly. Later runs will not need `--init-file`.
 
 The [quick-start guide](docs/quick-start.md) continues from this example. If the
 machine is already configured the way you like, start with
@@ -106,11 +105,9 @@ RWR uses three layers:
    local CLI preferences.
 2. The repository's `init.yaml` selects the blueprint directory, execution
    order, profiles, package managers, and credential policy.
-3. Blueprint files describe the actual resources RWR should manage.
+3. Blueprint files describe the resources you want RWR to manage.
 
-Blueprint filenames and folders are mainly for people. RWR can route files by
-their top-level keys, so a small setup may use one file while a larger setup can
-split work by operating system, machine, or resource type.
+Blueprint filenames and folders help people organize a setup. RWR can route files by their top-level keys. A small setup can use one file. A larger setup can split files by operating system, machine, or resource type.
 
 ## Everyday commands
 
@@ -119,7 +116,7 @@ split work by operating system, machine, or resource type.
 | `rwr validate PATH` | Check a blueprint tree without applying it |
 | `rwr all` | Apply the selected tree |
 | `rwr all --dry-run` | Show the planned work without changing the machine |
-| `rwr run packages` | Run one processor; `rwr packages` is equivalent |
+| `rwr run packages` | Run one processor. `rwr packages` is equivalent |
 | `rwr all --profile work` | Apply base items plus matching profile items |
 | `rwr run all --except credentials` | Provision without credential setup |
 | `rwr run credentials --profile bitwarden` | Run explicit credential setup |
@@ -181,8 +178,7 @@ mise run build
 mise run ci
 ```
 
-The test, lint, and security checks also run on pull requests. Behavioral
-changes should update the matching living specification under `openspec/`.
+Pull requests also run the test, lint, and security checks. For behavioral changes, update the matching living specification under `openspec/`.
 
 Issues and pull requests are welcome. Please include tests for behavior changes
 and keep documentation focused on behavior that exists today.

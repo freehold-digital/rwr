@@ -63,7 +63,7 @@ The `log` section contains settings related to logging.
 
 ## Example Configuration File
 
-Here's an example `config.yaml` file:
+Example 1: Set CLI defaults in `config.yaml`.
 
 ```yaml
 rwr:

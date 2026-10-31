@@ -4,7 +4,7 @@ The `validate` command in RWR helps you verify your blueprints and provider conf
 
 ## Overview
 
-The validate command performs comprehensive checks on your RWR blueprints and provider configurations to identify potential issues before you attempt to run them. This can save time and prevent errors during deployment.
+The `validate` command checks blueprint and provider configurations for errors before a run.
 
 ```bash
 rwr validate [flags]
@@ -40,9 +40,7 @@ directory:
 rwr validate path/to/blueprints
 ```
 
-With neither `--blueprints` nor `--providers`, RWR chooses one from the path: a
-directory named `providers` or a `.toml` file is validated as providers, and
-anything else as blueprints. Each run validates one of the two, never both.
+Without `--blueprints` or `--providers`, RWR chooses validation by path. It treats a directory named `providers` or a `.toml` file as providers. It treats other paths as blueprints. Each invocation validates one type, never both.
 
 Validating as blueprints needs an init file (`init.json`, `init.yaml`,
 `init.yml` or `init.toml`) at or above the files being checked; a tree with no
@@ -60,16 +58,11 @@ Blueprint validation checks your blueprint files for structural and content issu
 
 The blueprint validation process includes:
 
-* **Structure Validation**: Each file decodes strictly into its blueprint type. An
-  unknown key is an error, not something silently ignored
-* **Required Fields**: Required fields such as a repository `url`, an SSH key
-  `name`, `type` and `path`, or a file's `content` or `source`, must be present
-* **Enumerations**: `action` values are checked against the actions the processor
-  accepts, and file modes against what RWR will accept
-* **Imports**: Each `import` path must exist and must parse as the expected
-  blueprint type; a circular import is an error
-* **Package Managers**: A `package_manager` named by a blueprint must have a
-  provider available on this system
+* RWR decodes each file strictly into its blueprint type. Unknown keys are errors rather than silently ignored fields.
+* Required fields must be present. Examples include repository `url`, SSH key `name`, `type`, and `path`, and file `content` or `source`.
+* RWR checks `action` values against the processor's supported actions. It also checks file modes against accepted values.
+* Every `import` path must exist and parse as the expected blueprint type. Circular imports are errors.
+* A blueprint's `package_manager` must name a provider available on the system.
 
 ### Provider Validation
 
@@ -79,15 +72,9 @@ The provider validation process includes:
 
 * **File Type**: A provider configuration must be a `.toml` or `.json` file
   (an error otherwise)
-* **Required Fields**: A missing `provider.name` is an **error**. A missing
-  detection `binary` or `distributions` list, or a missing `install`, `update`
-  or `remove` command, is a **warning**
-* **Steps**: Each install, remove and repository step must name an action the
-  processor implements, and carry the fields that action needs (`exec` for
-  `command`, `source`/`dest` for `download` and `copy`, and so on) - errors.
-  Empty `content` on a `write` or `append` step is a warning
-* **Paths**: A declared repository sources path that does not exist on this
-  system is a warning
+* A missing `provider.name` is an error. Missing detection `binary` or `distributions` fields produce warnings. Missing `install`, `update`, or `remove` commands also produce warnings.
+* Every install, remove, or repository step must name a supported action and provide its required fields. Examples include `exec` for `command` and `source`/`dest` for `download` and `copy`. Missing required fields are errors. Empty `content` on a `write` or `append` step is a warning.
+* RWR warns when a declared repository sources path does not exist on the system.
 
 ## Error Reporting
 
@@ -164,7 +151,7 @@ rwr validate path/to/file --providers
 | `Missing exec/source/dest/path/… in … step` | Error | A step lacks a field its action needs |
 | `No providers available for the current system` | Warning | Nothing was detected on this machine |
 
-Only errors make the exit code non-zero; a run that produces warnings alone
+Only errors make the exit code non-zero. A run that produces warnings alone
 still exits `0`.
 
 ## Best Practices

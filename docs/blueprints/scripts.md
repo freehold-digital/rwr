@@ -126,9 +126,9 @@ The Scripts blueprint supports the following fields:
 | `content` | No | The inline content of the script. |
 | `args` | No | Arguments to pass to the script, as a string (split on whitespace) or a list (each element taken verbatim). |
 | `elevated` | No | Whether to run the script with elevated privileges (`sudo`). Default is `false`. |
-| `asUser` | No | Run the script as another account: `sudo -u <user>`. Ignored when `elevated: true`, since sudo cannot do both at once; RWR warns and runs elevated. |
+| `asUser` | No | Run the script as another account: `sudo -u <user>`. Ignored when `elevated: true`, since sudo cannot do both at once. RWR warns and runs elevated. |
 | `log` | No | Log name for script output. |
-| `interactive` | No | Give this script direct terminal input (`true`/`false`). Default is `false`. Set it only for a script that actually reads from the operator; RWR's global `--interactive` flag controls RWR prompts and does not make scripts interactive. |
+| `interactive` | No | Give this script direct terminal input (`true`/`false`). Default is `false`. Set it only for a script that actually reads from the operator. RWR's global `--interactive` flag controls RWR prompts and does not make scripts interactive. |
 
 > [!NOTE]
 > Either the `source`, `content`, or `import` field must be provided. If both `source` and `content` are present, `source` takes precedence.
@@ -145,9 +145,7 @@ and each part is sent to the script as one argument. The value
 args: "--verbose --out /tmp"
 ```
 
-A **list** sends each element exactly as written, spaces and all. This is the
-only way to pass an argument that contains whitespace, because RWR runs no
-shell and quoting inside the string form has no effect:
+A list passes each argument unchanged, including spaces. Use a list for arguments containing whitespace. RWR does not run a shell, so quoting inside the string form has no effect:
 
 ```yaml
 args: ["--message", "hello world", "--out", "/tmp/my reports"]

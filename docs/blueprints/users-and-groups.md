@@ -47,25 +47,16 @@ groups:
 See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 `import`, `interactive`, and the rule that an unknown key is an error.
 
-Ordinary user-management commands such as macOS `dscl` do not take over the
-terminal merely because the run uses the interactive TUI. RWR performs any
-required sudo authentication through a masked prompt inside the dashboard,
-falling back to its masked terminal prompt in headless runs, and keeps command
-output inside the dashboard. Set an entry's own `interactive: true`
-only when the underlying account-management command genuinely needs direct
-terminal interaction.
+Ordinary user-management commands such as macOS `dscl` do not take over the terminal because the run uses the interactive TUI. RWR collects required sudo authentication through a masked dashboard prompt and keeps command output inside the dashboard. Headless runs fall back to RWR's masked terminal prompt. Set `interactive: true` on an entry only when its account-management command needs direct terminal interaction.
 
 ## Actions
 
 `create`, `modify` and `remove` for both users and groups. `delete` is an
 accepted alias for `remove`.
 
-`create` is idempotent. If the account or group already exists, RWR does not
-fail: it converges the existing one to the attributes the entry declares
-(`usermod` on Linux, `dscl -create` on macOS) and sets the password if one is
-given. A declared `home` on an existing account is treated as the intended home,
-not as a request to relocate the current one - use `modify` with `new_home` for
-that.
+`create` is idempotent (safe to run more than once). If an account or group exists, RWR updates it to match the declared attributes instead of failing. It uses `usermod` on Linux and `dscl -create` on macOS. If a password is supplied, RWR sets it.
+
+For an existing account, `home` declares the intended home without relocating the current one. To relocate it, use `modify` with `new_home`.
 
 `remove` on an account or group that does not exist succeeds and does nothing.
 
@@ -75,7 +66,7 @@ that.
 |---------|-------------|
 | `name` | The username (required if `import` is not provided) |
 | `action` | `create`, `modify`, `remove` (or its alias `delete`) |
-| `uid` | User ID to assign. It is a **string**: write `uid: "1500"` |
+| `uid` | User ID to assign. It is a string: write `uid: "1500"` |
 | `password` | See [Passwords](#passwords) |
 | `groups` | Supplementary groups to put the user in (`create`) |
 | `add_groups` | Groups to add the user to (`modify`) |
@@ -99,7 +90,7 @@ that.
 |---------|-------------|
 | `name` | The group name (required if `import` is not provided) |
 | `action` | `create`, `modify`, `remove` (or its alias `delete`) |
-| `gid` | Group ID to assign. It is a **string**: write `gid: "3000"` |
+| `gid` | Group ID to assign. It is a string: write `gid: "3000"` |
 | `system` | Create as a system group |
 | `new_name` | Rename the group (`modify`) |
 | `profiles`, `import` | See [common fields](common-fields.md) |
@@ -108,16 +99,14 @@ Groups have no `interactive` field.
 
 ## Passwords
 
-**On Linux**, the password is handed to `chpasswd` on standard input, never as a
-command argument, so it does not appear in `ps` or in rwr's debug output. The
-value may be either:
+On Linux, RWR passes the password to `chpasswd` through standard input, never as a command argument. The password does not appear in `ps` or RWR's debug output. The value can be either:
 
 - **Cleartext**, which `chpasswd` hashes itself, or
 - **A crypt(3) hash** - `$6$…`, `$y$…`, a 13-character DES hash, or one of the
   locked markers `!`, `!!`, `*`, `*LK*` - which is passed through with
   `chpasswd -e`.
 
-RWR detects which of the two you wrote; there is no field to declare it.
+RWR detects which of the two you wrote. There is no field to declare it.
 
 > [!WARNING]
 > **On macOS**, the password is passed to `dscl . -passwd` as a command-line
@@ -148,13 +137,16 @@ the fields, and RWR warns rather than pretending it applied them:
 | `new_home` | The `NFSHomeDirectory` record is rewritten, but the directory's **contents are not moved**. RWR warns when it does this |
 | `remove_home` | Honoured through `sysadminctl -deleteUser` (which is also why RWR passes `-keepHome` when the flag is false). If `sysadminctl` is not available, the `dscl` fallback deletes the record only and warns that the home directory was left in place |
 | `lock` / `unlock` | Applied with `pwpolicy -disableuser` / `-enableuser` |
-| primary group | New accounts land in `staff` (GID 20); there is no field to choose another |
+| primary group | New accounts land in `staff` (GID 20). There is no field to choose another |
 | `uid` / `gid` | Allocated from 501 upwards when not declared |
 
-Other fields map straight across: `shell` to `UserShell`, `comment` to
-`RealName`, `home` to `NFSHomeDirectory`, `groups`/`add_groups`/`remove_groups`
-to `dseditgroup`, `new_name` to a `RecordName` change (applied last, after every
-other edit).
+Other fields map directly to macOS account attributes:
+
+- `shell` maps to `UserShell`.
+- `comment` maps to `RealName`.
+- `home` maps to `NFSHomeDirectory`.
+- `groups`, `add_groups`, and `remove_groups` use `dseditgroup`.
+- `new_name` changes `RecordName` after every other edit.
 
 ## Examples
 
@@ -271,7 +263,7 @@ action = "modify"
 new_name = "design_team"
 ```
 
-These examples demonstrate how to define users and groups using the Users and Groups blueprint in YAML, JSON, and TOML formats, including the new options for modifying and removing users and groups.
+These YAML, JSON, and TOML examples define, modify, and remove users and groups.
 
 ## Blueprint Imports
 

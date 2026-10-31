@@ -1,6 +1,6 @@
 # SSH Keys Blueprint
 
-The SSH Keys blueprint in Rinse, Wash, Repeat (RWR) allows you to generate and manage SSH keys as part of your system configuration. You can create SSH keys, specify their properties, optionally copy the public keys to your GitHub account, and set a key as the default RWR SSH key.
+The SSH Keys blueprint generates and manages SSH keys. You can set key properties, upload public keys to GitHub, and choose the default RWR SSH key.
 
 See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 `import`, `interactive`, and the rule that an unknown key is an error.
@@ -67,9 +67,7 @@ When the SSH Keys blueprint is processed, RWR will generate the specified SSH ke
 
 If `no_passphrase` is set to `true`, the SSH key will be generated without a passphrase. Otherwise, RWR will prompt you to enter a passphrase for the key.
 
-A key file that already exists is left alone: RWR logs a warning, skips
-generation, and goes on to the `copy_to_github` and `set_as_rwr_ssh_key` steps
-with the existing key.
+If a key file already exists, RWR leaves it unchanged and logs a warning. RWR skips generation and continues with `copy_to_github` and `set_as_rwr_ssh_key` using the existing key.
 
 ## Copying Public Keys to GitHub
 
@@ -97,7 +95,7 @@ This will:
 4. Save the token to the OS keyring, or to the owner-only (`0600`) RWR config
    only when no keyring backend is available
 
-After this initial setup, future runs won't require `--gh-auth` because the
+After this initial setup, future runs will not require `--gh-auth` because the
 token is persisted in one of those stores.
 
 #### Using an Explicit Token
@@ -136,7 +134,7 @@ If `github_title` is provided, it will be used as the title for the SSH key on G
 
 #### Authentication failed: invalid GitHub API token
 
-- Token may have expired
+- Check whether the token expired.
 - Re-authenticate with `--gh-auth`
 - Or generate a new token with `write:public_key` scope
 
@@ -145,11 +143,12 @@ If `github_title` is provided, it will be used as the title for the SSH key on G
 If `set_as_rwr_ssh_key` is set to `true`, RWR will set this key as the default SSH key for RWR operations. This key will be used for private git clones and other SSH-based operations within RWR. The private key is base64 encoded and saved to the OS keyring. If no keyring backend is available, RWR warns and falls back to the owner-only (`0600`) configuration file for compatibility with existing installations.
 
 > [!NOTE]
-> Only one key should be set as the RWR SSH key. If multiple keys are set, the last one processed will be used.
+> Set one key as the RWR SSH key.
+> If multiple keys are selected, RWR uses the last one processed.
 
 ## Example
 
-Here's an example of using the SSH Keys blueprint in YAML format:
+Example 1: Generate and manage SSH keys with a YAML blueprint.
 
 ```yaml
 ssh_keys:
@@ -172,4 +171,4 @@ ssh_keys:
 
 In this example, two SSH keys are defined: `id_rsa` and `id_ed25519`. The `id_rsa` key is generated without a passphrase, copied to GitHub with the title "My SSH Key", and set as the default RWR SSH key. The `id_ed25519` key is generated with a passphrase and not copied to GitHub or set as the RWR SSH key.
 
-For more information on using the SSH Keys blueprint in your RWR configuration, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Best Practices](../best-practices.md) sections of the documentation.
+See the [Blueprints Overview](../blueprints-general.md) and [Best Practices](../best-practices.md) for guidance on using SSH keys.

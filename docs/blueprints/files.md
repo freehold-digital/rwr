@@ -1,6 +1,6 @@
 # The Files Blueprint
 
-The Files Blueprint in Rinse, Wash, Repeat (RWR) allows you to manage files on your system. You can copy, move, delete, create, and modify files using this blueprint type. Additionally, the Files Blueprint includes the functionality of the former Templates Blueprint, allowing you to process and render template files.
+The Files blueprint manages files through copy, move, delete, create, and modification actions. It also renders template files, replacing the former Templates blueprint.
 
 See [Fields Common to Every Blueprint](common-fields.md) for `profiles`,
 `import`, `interactive`, and the rule that an unknown key is an error.
@@ -96,9 +96,9 @@ The `files` section manages regular files. The processor dispatches on `action`:
 | `chmod` | Applies `mode` to the target. `mode` is required |
 | `chown` | Applies `owner` and/or `group` to the target |
 | `chgrp` | Applies `group` to the target |
-| `symlink` | Makes the target a symlink to the source. An existing correct link is left alone; an existing wrong link is replaced; an existing regular file or directory is an error |
+| `symlink` | Makes the target a symlink to the source. An existing correct link is left alone. An existing wrong link is replaced. An existing regular file or directory is an error |
 
-There is no `append` action and no `template` action; templates are a separate
+There is no `append` action and no `template` action. Templates are a separate
 section, described below.
 
 Setting `content` forces the action to `create`. If the entry declared something
@@ -118,9 +118,7 @@ performs the requested action on the downloaded file.
   `/etc/myapp/app.conf`.
 - Any other target is the **file's own path**, which is how you rename on the
   way: `target: /etc/myapp/production.conf`.
-- **Exception:** if the target already exists and is a directory, the name is
-  appended to it even without the trailing separator. The alternative would be
-  truncating a directory, which no blueprint means.
+- If the target is an existing directory, RWR appends the source basename even without a trailing separator. RWR does not truncate the directory.
 
 `~` is expanded. Because expansion drops a trailing separator internally, the
 separator is read from the value you wrote, so `target: "~/.config/"` still
@@ -132,18 +130,11 @@ so replacing the path during a copy cannot redirect the permission change.
 
 ## File modes
 
-`mode` is a permission mode, at most four octal digits (`0o7777`). It is applied
-by the `create` and `chmod` actions only - a copy takes the source's
-permissions, a symlink has none, and delete, chown and chgrp do not touch the
-mode. `rwr validate` warns when a mode is set on an action that ignores it.
+`mode` sets permissions with at most four octal digits, up to `0o7777`. Only `create` and `chmod` apply it. A copy uses the source permissions. A symlink has no permission mode. `delete`, `chown`, and `chgrp` do not change the mode. `rwr validate` warns when an action ignores a declared mode.
 
 ### How to write one
 
-**Write it as a quoted octal string.** `mode: "0644"` means the same thing in
-YAML, JSON, TOML and CUE, and needs no thought about how each format reads
-numbers.
-The `0` and `0o` prefixes are both accepted, as is no prefix at all: `"0644"`,
-`"0o644"` and `"644"` are the same mode.
+Write the mode as a quoted octal string. `mode: "0644"` means the same thing in YAML, JSON, TOML, and CUE. This avoids differences in numeric parsing. The `0` and `0o` prefixes are optional: `"0644"`, `"0o644"`, and `"644"` specify the same mode.
 
 A number is read as **the mode's own value**, which is what every parser already
 produces for an octal literal. YAML `0644`, TOML `0o644` and JSON `420` are one
@@ -168,10 +159,7 @@ negative number, is refused the same way.
 
 ### TOML and setuid/setgid/sticky modes
 
-TOML's decoder hands rwr the decoded number with the literal already lost, so
-`0o4755` and `2541` arrive identically and the ambiguity check cannot tell them
-apart. In TOML, **a mode with a setuid, setgid or sticky bit must be a quoted
-string**:
+TOML's decoder returns the decoded number without the original literal. Both `0o4755` and `2541` arrive as the same number, so the ambiguity check cannot distinguish them. In TOML, a mode with a setuid, setgid, or sticky bit must be a quoted string:
 
 ```toml
 mode = "04755"   # correct
@@ -191,14 +179,11 @@ When no `mode` is declared:
 | A plain file (`create`) | `0644` |
 | A directory | `0755` |
 
-Rendered templates are private because templates can render credentials - a
-`.netrc`, a `gh` config - and those must not exist world-readable even for an
-instant. For the same reason, when a created file's mode gives nothing to group
-or other, any parent directory RWR has to create is made `0700` instead of
-`0755`.
+Templates can render credentials into files such as `.netrc` or a `gh` configuration. These files must never be world-readable, even during creation.
 
-A `chmod` action with no `mode` is an error at validation time and at run time;
-it is never treated as `0000`.
+If a created file's mode grants no group or other permissions, RWR creates any missing parent directories with mode `0700`, not `0755`.
+
+A `chmod` action with no `mode` is an error at validation time and at run time. It is never treated as `0000`.
 
 ## Template Processing
 
@@ -206,10 +191,7 @@ The `templates` section of the blueprint renders template files. The template is
 read from `<blueprint_dir>/<source>/<name>`, rendered with the merged variable
 set, and written to `target`.
 
-A template entry needs `name`, `source` and `target`; one missing any of them is
-skipped with a warning. Because the rendered result is written as content, a
-template is always **created** at its target whatever `action` says - an entry
-declaring `action: copy` renders and creates, and logs a warning saying so.
+A template entry requires `name`, `source`, and `target`. If any field is missing, RWR skips the entry with a warning. RWR always creates the rendered content at the target, regardless of `action`. An entry with `action: copy` still renders and creates the file, and RWR logs a warning.
 
 Template files use the Go template syntax and can include variables, conditionals, and loops. The `variables` setting allows you to define a map of variables and their corresponding values, which can be used within the template files.
 
@@ -503,8 +485,8 @@ port = 80
 
 - The `chmod`, `chown`, and `chgrp` actions are carried out by rwr's own process, not by a helper. Changing a file you do not own therefore needs rwr itself to be running with the privilege to do it.
 - The `create` action creates missing parent directories.
-- Write `mode` as a quoted octal string, `mode: "0644"`. A bare `mode: 644` is an error; see [File modes](#file-modes).
+- Write `mode` as a quoted octal string, `mode: "0644"`. A bare `mode: 644` is an error. See [File modes](#file-modes).
 - When using URL sources, RWR will download the file to a temporary location before performing the requested action.
-- Every action is safe to re-run: a delete of an absent file, a move already made, and a symlink already pointing at the source all succeed without changing anything.
+- Every action is safe to rerun. Deleting an absent file succeeds without changes. So does repeating a completed move or creating a symlink that already points to the source.
 
 For more information on using the Files Blueprint in your RWR configuration, please refer to the [Blueprints Overview](../blueprints-general.md) and the [Best Practices](../best-practices.md) guide.
