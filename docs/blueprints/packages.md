@@ -42,7 +42,7 @@ The Packages Blueprint supports the following settings:
 
 | Setting | Required | Description |
 |---------|----------|-------------|
-| `name` | Yes, if `names` or `import` is not provided | The name of the package to manage. It may **not** begin with `-` |
+| `name` | Yes, if `names` or `import` is not provided | The name of the package to manage. It **must not** begin with `-` |
 | `names` | Yes, if `name` or `import` is not provided | A list of package names to manage. The same restriction applies to each |
 | `import` | Yes, if `name` or `names` is not provided | Path to import package definitions from another file (relative to blueprint directory) |
 | `action` | Yes | `install` or `remove`. See [Actions](#actions) |
@@ -54,7 +54,7 @@ The Packages Blueprint supports the following settings:
 
 Note that you must provide either `name`, `names`, or `import` for each package entry. If both `name` and `names` are given, the `names` list is processed and `name` is ignored (with a warning), matching how `files` and `fonts` behave.
 
-### Package names may not begin with `-`
+### Package names must not begin with `-`
 
 Package managers read names starting with `-` as options, such as `--allow-downgrades` or `-U <url>`. RWR rejects these names and records a failure for the entry. The rest of the run continues.
 

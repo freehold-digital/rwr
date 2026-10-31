@@ -162,17 +162,17 @@ packages:
 
 ## Profile Discovery
 
-Use `rwr profiles` to inspect the profiles available in your configuration.
+Use `rwr profiles` to inspect the profiles available in your configuration. It
+prints every declared profile with a count of the entries carrying it:
 
 ```bash
-# See all available profiles
 rwr profiles
+```
 
-# See what would be installed for a profile
-rwr profiles --show development
+For a per-entry breakdown, use a dry run:
 
-# Get statistics about profile usage
-rwr profiles --stats
+```bash
+rwr all --profile development --dry-run
 ```
 
 ## Testing Configurations
@@ -336,7 +336,7 @@ If a profile does not seem to be working:
 
 1. Check the profile name matches exactly (case-sensitive)
 2. Verify the profile exists in your configuration
-3. Run `rwr profiles --show <profile-name>` to inspect the entries included in that profile.
+3. Run `rwr profiles` to see every declared profile with its entry count
 
 ### Unexpected Installations
 

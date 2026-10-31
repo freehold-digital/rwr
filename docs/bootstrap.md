@@ -18,9 +18,9 @@ Profile validation happens before bootstrap or package-manager installation.
 Bootstrap runs before normal credential resolution, so it can install the tools
 needed by credential sources. Preparation scripts must use OS tools and cannot
 depend on credentials that have not been resolved yet. If bootstrap itself needs
-a declared credential, explicitly give it `scope: [bootstrap]`; RWR resolves
+a declared credential, explicitly give it `scope: [bootstrap]`. RWR resolves
 those credentials before bootstrap begins. An empty package list
-requires no package manager. Profile-aware bootstrap entries honor the selected profiles; package-manager declarations apply regardless of profile.
+requires no package manager. Profile-aware bootstrap entries honor the selected profiles. Package-manager declarations apply regardless of profile.
 
 ## Bootstrap File Structure
 

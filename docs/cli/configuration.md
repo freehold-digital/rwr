@@ -100,7 +100,7 @@ RWR reads the same options from the environment. An environment variable takes
 precedence over `config.yaml` but is overridden by a command-line flag.
 
 The name is `RWR_` followed by the option's full key in upper case, with each
-dot **and each hyphen** replaced by an underscore.
+dot **and each hyphen** replaced by the `_` character.
 
 | Config key | Environment variable |
 |---|---|
@@ -118,7 +118,7 @@ RWR_REPOSITORY_INIT_FILE=/path/to/init.yaml rwr all
 ```
 
 > [!NOTE]
-> The hyphen in `repository.init-file` becomes an underscore in the environment
+> The hyphen in `repository.init-file` becomes a `_` character in the environment
 > name. `RWR_REPOSITORY_INIT-FILE`, with a literal hyphen, is a different name
 > and is ignored.
 

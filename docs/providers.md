@@ -6,7 +6,7 @@ A provider describes a package manager. It declares the identifying binary, dete
 
 The providers shipped with RWR are authored in **CUE** under
 `internal/system/definitions/` - the single source. The binary embeds
-those files and evaluates them at load; the schema rejects an invalid
+those files and evaluates them at load. The schema rejects an invalid
 provider (wrong action name, missing `commands.install`, a `/tmp/` staging
 path) naming the field. There is no exported or committed second
 representation.
@@ -313,7 +313,7 @@ touching the source tree:
 
 To contribute a provider to RWR itself, author it in CUE under
 `internal/system/definitions/` - the schema there documents every field
-and rejects invalid definitions. That's it: no export step, nothing else to
+and rejects invalid definitions. No export step and nothing else to
 regenerate.
 
 ### `elevated` and `escalates`

@@ -219,7 +219,7 @@ rwr all --debug
 rwr run packages --init-file path/to/init.yaml
 
 # Create the configuration file
-rwr config --create
+rwr config create
 
 # Apply every blueprint with bootstrap forced
 rwr all --force-bootstrap

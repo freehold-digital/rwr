@@ -222,4 +222,4 @@ credentials also.
 If you must see a value in the logs, use the `--show-secrets` flag. RWR gives a
 warning while this flag is active.
 
-Bootstrap runs before credential providers. Credential templates and `requiresCredentials` are rejected in bootstrap; put those resources in regular blueprints and run credential setup separately.
+Bootstrap runs before credential providers. Credential templates and `requiresCredentials` are rejected in bootstrap. Put those resources in regular blueprints, and run credential setup separately.
