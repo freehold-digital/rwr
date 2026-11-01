@@ -115,16 +115,8 @@ func TestRequestDeviceCode(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Temporarily override the URL for testing
-	oldURL := githubDeviceCodeURL
-	defer func() {
-		// Can't actually reassign const, so we'll test with actual URL
-		_ = oldURL
-	}()
-
-	// Note: This test verifies the request structure but uses the real URL
-	// In a production test suite, you'd use dependency injection or interfaces
-	// to make the URL configurable for testing
+	// githubDeviceCodeURL is a const. This test cannot redirect the request.
+	_ = githubDeviceCodeURL
 }
 
 // TestCheckAccessToken tests access token retrieval.
@@ -174,9 +166,6 @@ func TestCheckAccessToken(t *testing.T) {
 				json.NewEncoder(w).Encode(tt.response)
 			}))
 			defer server.Close()
-
-			// Note: In production, we'd need to make the URL configurable
-			// For now, this test documents the expected behavior
 		})
 	}
 }
@@ -218,9 +207,6 @@ func TestCopySSHKeyToGitHub_Success(t *testing.T) {
 		})
 	}))
 	defer server.Close()
-
-	// Note: In production, we'd need to make the API URL configurable for testing
-	// This test documents the expected behavior
 }
 
 // TestCopySSHKeyToGitHub_Errors drives the real upload against a local server.

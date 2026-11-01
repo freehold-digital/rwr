@@ -20,21 +20,18 @@ func ProcessRepositories(blueprintData []byte, blueprintDir string, format strin
 
 	log.Debugf("Processing repositories from blueprint")
 
-	// Unmarshal the blueprint data
 	err = helpers.DecodeBlueprintInto(blueprintData, format, types.BlueprintTypeRepositories,
 		helpers.TreeSchemaVersion(initConfig), &repositoriesBlueprint)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling repository blueprint: %w", err)
 	}
 
-	// Process imports and merge imported repositories
 	allRepositories, err := processRepositoryImports(repositoriesBlueprint.Repositories, blueprintDir, format, helpers.TreeSchemaVersion(initConfig))
 	if err != nil {
 		return fmt.Errorf("error processing repository imports: %w", err)
 	}
 	repositoriesBlueprint.Repositories = allRepositories
 
-	// Filter repositories based on active profiles
 	filteredRepositories := helpers.FilterByProfiles(repositoriesBlueprint.Repositories, initConfig.Variables.Flags.Profiles)
 
 	log.Debugf("Filtering repositories: %d total, %d matching active profiles %v",

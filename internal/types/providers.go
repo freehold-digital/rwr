@@ -113,7 +113,6 @@ type ActionStep struct {
 // GetCorePackagesForDistro returns the appropriate core packages for a given distribution
 // It will use alternatives if available, otherwise fall back to default packages.
 func (p *Provider) GetCorePackagesForDistro(distro string) map[string][]string {
-	// Check if we have alternatives for this distribution
 	if alternatives, exists := p.Alternatives[distro]; exists {
 		// Merge default packages with alternatives, with alternatives taking precedence
 		result := make(map[string][]string)

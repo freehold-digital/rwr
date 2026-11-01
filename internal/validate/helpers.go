@@ -80,12 +80,10 @@ func validateImportWithVisited(importPath string, fieldPath string, blueprintDir
 		return true
 	}
 
-	// Initialize visited map if needed
 	if visited == nil {
 		visited = make(map[string]bool)
 	}
 
-	// Detect circular imports
 	if visited[absPath] {
 		AddIssue(results, types.ValidationError,
 			fmt.Sprintf("Circular import detected: '%s' for %s", importPath, fieldPath),

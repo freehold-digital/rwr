@@ -126,7 +126,6 @@ func processTemplate(template types.File, blueprintDir string, osInfo *types.OSI
 		mode = types.FileMode(defaultTemplateMode)
 	}
 
-	// Create a File struct from the Template
 	file := types.File{
 		Name:     template.Name,
 		Action:   template.Action,

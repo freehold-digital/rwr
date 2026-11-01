@@ -19,7 +19,6 @@ import (
 func ValidateProviders(path string, verbose bool, results *types.ValidationResults, osInfo *types.OSInfo) error {
 	log.Infof("Validating providers in %s", path)
 
-	// Check if path is a file or directory
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("error accessing path: %w", err)
@@ -33,7 +32,6 @@ func ValidateProviders(path string, verbose bool, results *types.ValidationResul
 		}
 	}
 
-	// Get available providers
 	availableProviders := system.GetAvailableProviders()
 	if len(availableProviders) == 0 {
 		AddIssue(results, types.ValidationWarning, "No providers available for the current system", "", 0, "Install required package managers")
@@ -121,7 +119,6 @@ func validateProviderFile(providerFile string, results *types.ValidationResults,
 		}
 
 		if isSupported {
-			// Check if sources path exists on the system
 			if _, err := os.Stat(provider.Repository.Paths.Sources); os.IsNotExist(err) {
 				AddIssue(results, types.ValidationWarning, fmt.Sprintf("Repository sources path does not exist: %s", provider.Repository.Paths.Sources), providerFile, 0, "")
 			}

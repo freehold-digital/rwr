@@ -13,7 +13,7 @@ import (
 // platform-specific decisions.
 func DetectOS() *types.OSInfo {
 	log.Debug("Detecting operating system.")
-	osInfo := &types.OSInfo{} // Create a new instance of types.OSInfo
+	osInfo := &types.OSInfo{}
 	err := SetPaths()
 	if err != nil {
 		log.Fatalf("Error setting PATH: %v", err)

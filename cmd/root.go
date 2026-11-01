@@ -193,7 +193,6 @@ func registerRootFlags(rootCmd *cobra.Command, app *AppConfig) {
 	flags.StringVar(&app.SSHKey, "ssh-key", "", "Path to the SSH key file or Base64-encoded SSH key for Git authentication (stored under repository.ssh_private_key)")
 	mustBindFlag(rootCmd, "repository.ssh_private_key", "ssh-key")
 
-	// Adding skipVersionCheck as a global flag
 	flags.BoolVar(&app.SkipVersionCheck, "skip-version-check", false, "Skip checking for the latest version of rwr")
 	mustBindFlag(rootCmd, "rwr.skipVersionCheck", "skip-version-check")
 	viper.SetDefault("rwr.skipVersionCheck", false)
@@ -235,7 +234,6 @@ func registerRootFlags(rootCmd *cobra.Command, app *AppConfig) {
 func initializeSystemInfo(app *AppConfig, syncBlueprints bool, selectedProcessors ...string) error {
 	var err error
 
-	// If no init file is specified via flag, check config
 	app.InitFilePath = configuredInitFile(app.InitFilePath)
 
 	// One resolver for every accepted form - local path, directory, https URL,
@@ -381,7 +379,6 @@ func mustBindFlag(rootCmd *cobra.Command, viperKey, flagName string) {
 // with appropriate output settings and log levels based on flags and configuration.
 // It reads the config file if available and sets up GitHub API tokens and SSH keys.
 func loadConfig(app *AppConfig) error {
-	// Create a new logger
 	log.SetTimeFormat(time.Kitchen)
 	log.SetReportCaller(true)
 	log.SetReportTimestamp(true)
@@ -428,11 +425,9 @@ func loadConfig(app *AppConfig) error {
 		log.Debugf("No config file found. Using default settings")
 	}
 
-	// Check if debug flag is set to enable debug level logging
 	if app.Debug {
 		log.SetLevel(log.DebugLevel)
 	} else {
-		// Otherwise, set the log level based on the "log.level" configuration
 		switch viper.GetString("log.level") {
 		case "debug":
 			log.SetLevel(log.DebugLevel)
@@ -452,9 +447,8 @@ func loadConfig(app *AppConfig) error {
 	return nil
 }
 
-// Execute runs the root command and handles any errors that occur during execution.
-// This is the main entry point for the CLI application and should be called from main.
-// It exits with status code 1 if an error occurs.
+// Execute runs the root command.
+// main calls it. It exits 1 when the command fails.
 func Execute() {
 	// rwr had no signal handling at all: ctrl-c reached a run that installs
 	// software as root and did nothing, because under the dashboard the tty is

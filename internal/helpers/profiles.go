@@ -12,17 +12,14 @@ import (
 // Profile-gated items are opt-in: when no active profiles are given, only base
 // items apply.
 func ShouldInclude(itemProfiles []string, activeProfiles []string) bool {
-	// If no profiles are specified for the item, it's a base item - always include
 	if len(itemProfiles) == 0 {
 		return true
 	}
 
-	// "all" is a special case: include everything regardless of item profiles
 	if slices.Contains(activeProfiles, "all") {
 		return true
 	}
 
-	// Check if any of the item's profiles match active profiles
 	for _, itemProfile := range itemProfiles {
 		if slices.Contains(activeProfiles, itemProfile) {
 			return true

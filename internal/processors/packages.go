@@ -107,7 +107,6 @@ func brewMetadataEscalates(data []byte) (escalates, known bool) {
 // Returns an error if no package managers are available or if unmarshaling fails.
 // Individual package installation errors are logged but do not stop processing.
 func ProcessPackages(data []byte, packages *types.PackagesData, blueprintDir string, format string, osInfo *types.OSInfo, initConfig *types.InitConfig) error {
-	// If data is provided, unmarshal it
 	if data != nil {
 		var pkgData types.PackagesData
 		if err := helpers.DecodeBlueprintInto(data, format, types.BlueprintTypePackages,
@@ -117,12 +116,10 @@ func ProcessPackages(data []byte, packages *types.PackagesData, blueprintDir str
 		packages = &pkgData
 	}
 
-	// If no packages provided, nothing to do
 	if packages == nil || len(packages.Packages) == 0 {
 		return nil
 	}
 
-	// Process imports and merge imported packages
 	allPackages, err := helpers.ResolveImports(packages.Packages, blueprintDir,
 		func(item types.Package) string { return item.Import },
 		func(data []byte, fileFormat string) ([]types.Package, error) {
@@ -137,22 +134,18 @@ func ProcessPackages(data []byte, packages *types.PackagesData, blueprintDir str
 		return fmt.Errorf("error processing package imports: %w", err)
 	}
 
-	// Update packages with merged list
 	packages.Packages = allPackages
 
-	// Filter packages based on active profiles
 	filteredPackages := helpers.FilterByProfiles(packages.Packages, initConfig.Variables.Flags.Profiles)
 
 	if len(filteredPackages) == 0 {
 		return nil
 	}
 
-	// Initialize providers if needed
 	if err := system.InitProviders(); err != nil {
 		return fmt.Errorf("error initializing providers: %w", err)
 	}
 
-	// Get available providers
 	available := system.GetAvailableProviders()
 	if len(available) == 0 {
 		return fmt.Errorf("no package managers available - check debug logs for detailed provider detection information. Common issues: missing binaries in PATH, missing config files, or unsupported platform")
@@ -187,7 +180,6 @@ func ProcessPackages(data []byte, packages *types.PackagesData, blueprintDir str
 			subject = strings.Join(pkg.Names, " ")
 		}
 		if pkg.PackageManager != "" {
-			// Use specified package manager
 			provider, exists = system.GetProvider(pkg.PackageManager)
 			if !exists {
 				recordFailure("packages", subject,

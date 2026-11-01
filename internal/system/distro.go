@@ -68,7 +68,6 @@ func GetDistroFamily(distro string) string {
 		return distro
 	}
 
-	// Check if the distro is a variant of a known base distro
 	for baseDistro, variants := range distroFamilies {
 		for _, variant := range variants {
 			if distro == variant {
@@ -99,7 +98,6 @@ func IsDistroInFamily(distro, family string) bool {
 		return true
 	}
 
-	// Check if the distro is a variant of the family
 	variants, exists := distroFamilies[family]
 	if exists {
 		for _, variant := range variants {

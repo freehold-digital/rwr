@@ -21,7 +21,6 @@ import (
 // blueprint repository. Otherwise, it returns the configured local location.
 // Returns the path to the blueprints directory or an error if retrieval fails.
 func GetBlueprints(initConfig *types.InitConfig) (string, error) {
-	// Check if GitOptions is provided in the init configuration
 	if initConfig.Init.Git != nil {
 		gitOpts := initConfig.Init.Git
 
@@ -61,12 +60,10 @@ func GetBlueprints(initConfig *types.InitConfig) (string, error) {
 			}
 		}
 
-		// Now either clone fresh or update existing
 		_, err := git.PlainOpen(gitOpts.Target)
 		if err != nil {
-			// Repository doesn't exist or was removed - clone it
 			log.Debugf("Cloning blueprint repository to %s", gitOpts.Target)
-			if err := os.MkdirAll(filepath.Dir(gitOpts.Target), 0755); err != nil { // #nosec G301 -- TODO: blueprint-target directory; create with the requested mode
+			if err := os.MkdirAll(filepath.Dir(gitOpts.Target), 0755); err != nil { // #nosec G301 -- parent of the clone target; 0755 matches helpers/git.go
 				return "", fmt.Errorf("error creating parent directory: %v", err)
 			}
 			err = helpers.HandleGitClone(*gitOpts, initConfig)

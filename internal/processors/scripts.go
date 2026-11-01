@@ -19,7 +19,6 @@ func ProcessScripts(blueprintData []byte, blueprintDir string, format string, os
 	var scriptData types.ScriptData
 	var err error
 
-	// Unmarshal the blueprint data
 	err = helpers.DecodeBlueprintInto(blueprintData, format, types.BlueprintTypeScripts,
 		helpers.TreeSchemaVersion(initConfig), &scriptData)
 	if err != nil {
@@ -29,19 +28,16 @@ func ProcessScripts(blueprintData []byte, blueprintDir string, format string, os
 
 	log.Debugf("Unmarshaled scripts: %+v", scriptData.Scripts)
 
-	// Process imports and merge imported scripts
 	allScripts, err := processScriptImports(scriptData.Scripts, blueprintDir, format, helpers.TreeSchemaVersion(initConfig))
 	if err != nil {
 		return fmt.Errorf("error processing script imports: %w", err)
 	}
 	scriptData.Scripts = allScripts
-	// Filter scripts based on active profiles
 	filteredScripts := helpers.FilterByProfiles(scriptData.Scripts, initConfig.Variables.Flags.Profiles)
 
 	log.Debugf("Filtering scripts: %d total, %d matching active profiles %v",
 		len(scriptData.Scripts), len(filteredScripts), initConfig.Variables.Flags.Profiles)
 
-	// Process the filtered scripts
 	err = processScripts(filteredScripts, osInfo, initConfig, blueprintDir)
 	if err != nil {
 		log.Errorf("Error processing scripts: %v", err)
@@ -110,7 +106,6 @@ func runScript(script types.Script, osInfo *types.OSInfo, initConfig *types.Init
 
 	log.Debugf("Running script: %s", script.Name)
 
-	// Set default executor if not specified
 	if script.Exec == "" {
 		switch osInfo.System.OS {
 		case "linux", "darwin":
@@ -217,10 +212,7 @@ func runScript(script types.Script, osInfo *types.OSInfo, initConfig *types.Init
 		scriptCmd.Args = append(scriptCmd.Args, script.Args...)
 	}
 
-	// Set the log name
 	scriptCmd.LogName = script.Log
-
-	// Set the elevated flag
 	scriptCmd.Elevated = script.Elevated
 
 	// buildCommand checks Elevated first, so asking for both silently ignored one

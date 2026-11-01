@@ -107,7 +107,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 		format = derived
 	}
 
-	// Unmarshal the blueprint data
 	log.Debugf("Unmarshaling bootstrap data from %s", blueprintFile)
 	err = helpers.DecodeBlueprintInto(blueprintData, format,
 		types.BlueprintTypeBootstrap, helpers.TreeSchemaVersion(initConfig), &bootstrapData)
@@ -164,7 +163,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 	bootstrapData.Services = helpers.FilterByProfiles(bootstrapData.Services, profiles)
 	bootstrapData.Users = helpers.FilterByProfiles(bootstrapData.Users, profiles)
 	bootstrapData.Groups = helpers.FilterByProfiles(bootstrapData.Groups, profiles)
-	// Process packages
 	log.Debugf("Processing packages from %s", blueprintFile)
 	packagesData := &types.PackagesData{
 		Packages: bootstrapData.Packages,
@@ -180,7 +178,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 	filesTrack := newProgress(types.BlueprintTypeFiles)
 	usersTrack := newProgress(types.BlueprintTypeUsers)
 
-	// Process directories
 	log.Debugf("Processing directories from %s", blueprintFile)
 	err = processDirectories(bootstrapData.Directories, blueprintDir, initConfig, filesTrack)
 	if err != nil {
@@ -188,7 +185,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 		return err
 	}
 
-	// Process Files
 	log.Debugf("Processing files from %s", blueprintFile)
 	err = processFiles(bootstrapData.Files, blueprintDir, osInfo, filesTrack, initConfig)
 	if err != nil {
@@ -196,7 +192,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 		return err
 	}
 
-	// Process SSH
 	log.Debugf("Processing files from %s", blueprintFile)
 	err = processSSHKeys(bootstrapData.SSHKeys, osInfo, initConfig)
 	if err != nil {
@@ -204,7 +199,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 		return err
 	}
 
-	// Process Git repositories
 	log.Debugf("Processing Git repositories from %s", blueprintFile)
 	err = processGitRepositories(bootstrapData.Git, initConfig)
 	if err != nil {
@@ -212,7 +206,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 		return err
 	}
 
-	// Process services
 	log.Debugf("Processing services from %s", blueprintFile)
 	err = processServices(bootstrapData.Services, osInfo, initConfig)
 	if err != nil {
@@ -220,7 +213,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 		return err
 	}
 
-	// Process users/groups
 	log.Debugf("Processing users/groups from %s", blueprintFile)
 	err = processUsers(bootstrapData.Users, initConfig, usersTrack)
 	if err != nil {
@@ -228,7 +220,6 @@ func ProcessBootstrap(blueprintFile string, initConfig *types.InitConfig, osInfo
 		return err
 	}
 
-	// Process groups
 	log.Debugf("Processing groups from %s", blueprintFile)
 	err = processGroups(bootstrapData.Groups, initConfig, usersTrack)
 	if err != nil {

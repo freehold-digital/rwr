@@ -88,21 +88,18 @@ func ProcessSSHKeys(blueprintData []byte, blueprintDir string, format string, os
 
 	log.Debugf("Processing SSH keys from blueprint")
 
-	// Unmarshal the blueprint data
 	err = helpers.DecodeBlueprintInto(blueprintData, format, types.BlueprintTypeSSHKeys,
 		helpers.TreeSchemaVersion(initConfig), &sshKeyData)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling SSH key blueprint: %v", err)
 	}
 
-	// Process imports and merge imported SSH keys
 	allSSHKeys, err := processSSHKeyImports(sshKeyData.SSHKeys, blueprintDir, format, helpers.TreeSchemaVersion(initConfig))
 	if err != nil {
 		return fmt.Errorf("error processing SSH key imports: %w", err)
 	}
 	sshKeyData.SSHKeys = allSSHKeys
 
-	// Filter SSH keys based on active profiles
 	filteredSSHKeys := helpers.FilterByProfiles(sshKeyData.SSHKeys, initConfig.Variables.Flags.Profiles)
 
 	log.Debugf("Filtering SSH keys: %d total, %d matching active profiles %v",
@@ -120,7 +117,6 @@ func ProcessSSHKeys(blueprintData []byte, blueprintDir string, format string, os
 func processSSHKeys(sshKeys []types.SSHKey, osInfo *types.OSInfo, initConfig *types.InitConfig) error {
 	track := newProgress(types.BlueprintTypeSSHKeys)
 	track.expect("", len(sshKeys))
-	// Process the SSH keys
 	for _, sshKey := range sshKeys {
 		if system.IsDryRun() {
 			log.Infof("[DRY-RUN] Would generate SSH key: %s (type: %s, path: %s)", sshKey.Name, sshKey.Type, sshKey.Path)
@@ -136,14 +132,12 @@ func processSSHKeys(sshKeys []types.SSHKey, osInfo *types.OSInfo, initConfig *ty
 
 		started := time.Now()
 
-		// Ensure required packages are installed
 		err := ensureSSHPackages(osInfo, initConfig)
 		if err != nil {
 			track.item("", sshKey.Name, "ssh_key", types.StatusFailed, err.Error(), time.Since(started))
 			return fmt.Errorf("error ensuring SSH packages: %v", err)
 		}
 
-		// Generate SSH key
 		keyPath, err := generateSSHKey(sshKey, initConfig)
 		if err != nil {
 			recordFailure("ssh_keys", sshKey.Name, fmt.Errorf("generating key: %w", err))
@@ -151,7 +145,6 @@ func processSSHKeys(sshKeys []types.SSHKey, osInfo *types.OSInfo, initConfig *ty
 			continue
 		}
 
-		// Copy public key to GitHub if requested
 		if sshKey.CopyToGitHub {
 			err = copySSHKeyToGitHub(sshKey, initConfig)
 			if err != nil {
@@ -161,7 +154,6 @@ func processSSHKeys(sshKeys []types.SSHKey, osInfo *types.OSInfo, initConfig *ty
 			}
 		}
 
-		// Set as RWR SSH Key if requested
 		if sshKey.SetAsRWRSSHKey {
 			err = setAsRWRSSHKey(keyPath)
 			if err != nil {
@@ -236,7 +228,6 @@ func generateSSHKey(sshKey types.SSHKey, initConfig *types.InitConfig) (string, 
 	// literally named "~" in the working directory.
 	sshPath := filepath.Join(system.ExpandPath(sshKey.Path), sshKey.Name)
 
-	// Check if the SSH key already exists
 	if _, err := os.Stat(sshPath); err == nil {
 		log.Warnf("SSH key %s already exists. Skipping generation.", sshPath)
 		return sshPath, nil
@@ -546,7 +537,6 @@ var githubKeysAPI = "https://api.github.com/user/keys"
 func copySSHKeyToGitHub(sshKey types.SSHKey, initConfig *types.InitConfig) error {
 	sshKey = withSSHKeyDefaults(sshKey)
 
-	// Get GitHub token with fallback hierarchy
 	token, source, err := getGitHubToken(initConfig)
 	if err != nil {
 		return err
@@ -565,7 +555,6 @@ func copySSHKeyToGitHub(sshKey types.SSHKey, initConfig *types.InitConfig) error
 		return fmt.Errorf("error reading public key file: %v", err)
 	}
 
-	// Get or prompt for title
 	var title string
 	if sshKey.GithubTitle == "" {
 		hostname, err := os.Hostname()
@@ -589,7 +578,6 @@ func copySSHKeyToGitHub(sshKey types.SSHKey, initConfig *types.InitConfig) error
 		title = sshKey.GithubTitle
 	}
 
-	// Create request payload
 	payload := githubKeyRequest{
 		Title: title,
 		Key:   strings.TrimSpace(string(publicKeyBytes)),
@@ -601,13 +589,11 @@ func copySSHKeyToGitHub(sshKey types.SSHKey, initConfig *types.InitConfig) error
 		return fmt.Errorf("error marshaling JSON: %v", err)
 	}
 
-	// Create HTTP request
 	req, err := http.NewRequest("POST", githubKeysAPI, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
 
-	// Set headers
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
@@ -621,13 +607,11 @@ func copySSHKeyToGitHub(sshKey types.SSHKey, initConfig *types.InitConfig) error
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
-	// Read response body
 	body, err := io.ReadAll(resp.Body) //nolint:errcheck
 	if err != nil {
 		return fmt.Errorf("error reading response: %v", err)
 	}
 
-	// Handle response based on status code
 	switch resp.StatusCode {
 	case 201:
 		log.Infof("SSH public key added to GitHub: %s", title)
@@ -637,10 +621,8 @@ func copySSHKeyToGitHub(sshKey types.SSHKey, initConfig *types.InitConfig) error
 	case 403:
 		return fmt.Errorf("forbidden: GitHub token requires 'write:public_key' scope")
 	case 422:
-		// Parse error details
 		var ghErr githubError
 		if err := json.Unmarshal(body, &ghErr); err == nil && ghErr.Message != "" {
-			// Check if it's a duplicate key error
 			if len(ghErr.Errors) > 0 {
 				for _, e := range ghErr.Errors {
 					// The key being on the account already is the state

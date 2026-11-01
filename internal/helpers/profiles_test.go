@@ -757,7 +757,7 @@ func TestEdgeCases(t *testing.T) {
 		}
 
 		profiles := GetUniqueProfiles([]types.Package{unicodePackage})
-		// Note: The actual sort order may vary for Unicode, so we just check that all profiles are present
+		// The assertion checks the set. It does not depend on sort order.
 		if len(profiles) != 3 {
 			t.Errorf("Expected 3 unique unicode profiles, got %d: %v", len(profiles), profiles)
 		}

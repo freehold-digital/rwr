@@ -39,7 +39,6 @@ Examples:
   rwr validate path/to/file --providers`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Get path from args or use current directory
 			path := "."
 			if len(args) > 0 {
 				path = args[0]
@@ -51,7 +50,6 @@ Examples:
 				return fmt.Errorf("error resolving path %s: %w", path, err)
 			}
 
-			// Check if path exists
 			if _, err := os.Stat(absPath); os.IsNotExist(err) {
 				return fmt.Errorf("path does not exist: %s", absPath)
 			}
@@ -80,7 +78,6 @@ Examples:
 				}
 			}
 
-			// Set up validation options
 			options := types.ValidationOptions{
 				Path:               absPath,
 				ValidateBlueprints: validateBlueprints,

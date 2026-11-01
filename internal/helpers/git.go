@@ -105,13 +105,11 @@ func CheckAndUpdateRemoteURL(repoPath, desiredURL string) error {
 	if !SameRepositoryURL(currentURL, desiredURL) {
 		log.Infof("Updating remote URL from %s to %s", currentURL, desiredURL)
 
-		// Remove the existing remote
 		err = repo.DeleteRemote("origin")
 		if err != nil {
 			return fmt.Errorf("error removing existing remote: %v", err)
 		}
 
-		// Create a new remote with the updated URL
 		_, err = repo.CreateRemote(&config.RemoteConfig{
 			Name: "origin",
 			URLs: []string{desiredURL},
@@ -279,7 +277,6 @@ func truncateForError(value string) string {
 }
 
 func getSSHAuthMethod(initConfig *types.InitConfig) (transport.AuthMethod, error) {
-	// Use the specified SSH key or try to find a suitable key
 	sshKeyValue := initConfig.Variables.Flags.SSHKey
 
 	// The value is key material (raw or base64) or a path to a key file.
@@ -370,7 +367,6 @@ func HandleGitPull(opts types.GitOptions, initConfig *types.InitConfig) error {
 		return fmt.Errorf("error getting worktree: %v", err)
 	}
 
-	// Get the remote URL to determine if we need authentication
 	remote, err := repo.Remote("origin")
 	if err != nil {
 		log.Errorf("Error getting remote 'origin': %v", err)
