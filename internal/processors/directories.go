@@ -105,7 +105,7 @@ func moveDirectory(dir types.Directory, blueprintDir string) error {
 	target := filepath.Join(system.ExpandPath(dir.Target), dir.Name)
 
 	targetDir := filepath.Dir(target)
-	if err := os.MkdirAll(targetDir, defaultDirMode); err != nil {
+	if err := os.MkdirAll(targetDir, defaultDirMode); err != nil { // #nosec G301 -- default 0755 parent matches standard user directory permissions
 		return fmt.Errorf("error creating target directory: %w", err)
 	}
 

@@ -268,7 +268,7 @@ func processFile(file types.File, blueprintDir string, osInfo *types.OSInfo) err
 }
 
 func moveFile(source, target string) error {
-	if err := os.MkdirAll(filepath.Dir(target), defaultDirMode); err != nil { // #nosec G703 -- target path is operator-supplied blueprint/config input
+	if err := os.MkdirAll(filepath.Dir(target), defaultDirMode); err != nil { // #nosec G301,G703 -- default 0755 parent matches standard user directory permissions; target path is operator-supplied blueprint/config input
 		return fmt.Errorf("error creating target directory: %w", err)
 	}
 
@@ -477,7 +477,7 @@ func ensureSymlink(source, target string) error {
 		return fmt.Errorf("error inspecting symlink target %s: %w", target, err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(target), defaultDirMode); err != nil { // #nosec G703 -- target path is operator-supplied blueprint/config input
+	if err := os.MkdirAll(filepath.Dir(target), defaultDirMode); err != nil { // #nosec G301,G703 -- default 0755 parent matches standard user directory permissions; target path is operator-supplied blueprint/config input
 		return fmt.Errorf("error creating symlink parent directory: %w", err)
 	}
 
