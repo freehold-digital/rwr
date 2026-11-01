@@ -757,8 +757,7 @@ func TestEdgeCases(t *testing.T) {
 		}
 
 		profiles := GetUniqueProfiles([]types.Package{unicodePackage})
-		// Unicode-aware sorting can order these differently between Go
-		// versions, so the test asserts the set, not an order.
+		// The assertion checks the set. It does not depend on sort order.
 		if len(profiles) != 3 {
 			t.Errorf("Expected 3 unique unicode profiles, got %d: %v", len(profiles), profiles)
 		}

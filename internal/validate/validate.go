@@ -1,4 +1,4 @@
-// Package validate provides validation functionality for blueprints and providers.
+// Package validate checks blueprints and providers.
 // It validates blueprint structure, component definitions, bootstrap configurations,
 // and provider availability. The package reports validation issues with severity
 // levels (error, warning, info) and provides detailed feedback for troubleshooting
@@ -19,21 +19,18 @@ func Validate(options types.ValidationOptions, osInfo *types.OSInfo) (*types.Val
 		Issues: []types.ValidationIssue{},
 	}
 
-	// Validate blueprints if requested
 	if options.ValidateBlueprints {
 		if err := ValidateBlueprints(options.Path, options.Verbose, results, osInfo); err != nil {
 			return results, fmt.Errorf("error validating blueprints: %w", err)
 		}
 	}
 
-	// Validate providers if requested
 	if options.ValidateProviders {
 		if err := ValidateProviders(options.Path, options.Verbose, results, osInfo); err != nil {
 			return results, fmt.Errorf("error validating providers: %w", err)
 		}
 	}
 
-	// Count issues by severity
 	for _, issue := range results.Issues {
 		switch issue.Severity {
 		case types.ValidationError:
@@ -61,7 +58,6 @@ func AddIssue(results *types.ValidationResults, severity types.ValidationSeverit
 
 	results.Issues = append(results.Issues, issue)
 
-	// Log the issue
 	logMsg := fmt.Sprintf("%s: %s", severity, message)
 	if file != "" {
 		logMsg += fmt.Sprintf(" [%s", file)

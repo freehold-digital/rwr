@@ -222,7 +222,6 @@ func ShowDiffTo(writer io.Writer, source, target string) error {
 		Context:  3,
 	}
 
-	// Configure the diff options
 	opt := DiffOption{
 		NoHeader:         false,
 		TabSize:          4,

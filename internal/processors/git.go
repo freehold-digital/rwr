@@ -20,27 +20,23 @@ func ProcessGitRepositories(blueprintData []byte, blueprintDir string, format st
 
 	log.Debugf("Processing Git repositories from blueprint")
 
-	// Unmarshal the blueprint data
 	err = helpers.DecodeBlueprintInto(blueprintData, format, types.BlueprintTypeGit,
 		helpers.TreeSchemaVersion(initConfig), &gitData)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling Git repository blueprint: %w", err)
 	}
 
-	// Process imports and merge imported git repos
 	allRepos, err := processGitImports(gitData.Repos, blueprintDir, format, helpers.TreeSchemaVersion(initConfig))
 	if err != nil {
 		return fmt.Errorf("error processing git imports: %w", err)
 	}
 	gitData.Repos = allRepos
 
-	// Filter Git repositories based on active profiles
 	filteredRepos := helpers.FilterByProfiles(gitData.Repos, initConfig.Variables.Flags.Profiles)
 
 	log.Debugf("Filtering Git repositories: %d total, %d matching active profiles %v",
 		len(gitData.Repos), len(filteredRepos), initConfig.Variables.Flags.Profiles)
 
-	// Process the filtered Git repositories
 	err = processGitRepositories(filteredRepos, initConfig)
 	if err != nil {
 		log.Errorf("Error processing Git repositories: %v", err)
@@ -90,7 +86,6 @@ func processGitRepositories(gitRepos []types.Git, initConfig *types.InitConfig) 
 				continue
 			}
 
-			// Pull latest changes
 			err = helpers.HandleGitPull(gitOpts, initConfig)
 			if err != nil {
 				var divergence *helpers.GitDivergenceError
@@ -113,7 +108,6 @@ func processGitRepositories(gitRepos []types.Git, initConfig *types.InitConfig) 
 				track.item("", repo.Name, repo.Action, types.StatusFailed, "nothing checked out at target", time.Since(started))
 				continue
 			}
-			// Repository doesn't exist, clone it
 			err = helpers.HandleGitClone(gitOpts, initConfig)
 			if err != nil {
 				recordFailure("git", repo.Name, fmt.Errorf("cloning: %w", err))
@@ -123,7 +117,6 @@ func processGitRepositories(gitRepos []types.Git, initConfig *types.InitConfig) 
 			log.Infof("Git repository %s cloned successfully", repo.Name)
 			track.itemIdentity("", repo.Name, repo.Action, types.StatusOK, "", time.Since(started), map[string]string{"target": gitOpts.Target})
 		} else {
-			// Some other error occurred
 			recordFailure("git", repo.Name, fmt.Errorf("checking repository path: %w", err))
 			track.item("", repo.Name, repo.Action, types.StatusFailed, err.Error(), time.Since(started))
 			continue

@@ -215,8 +215,7 @@ func TestGetBlueprintRunOrder_MultipleMapItems(t *testing.T) {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
 
-	// Should extract all processor keys from maps
-	// Map iteration order is not guaranteed, so we check length and contents
+	// Map iteration order is not stable, so check the set, not the order.
 	if len(result) != 4 {
 		t.Errorf("Expected 4 processors, got %d: %v", len(result), result)
 	}

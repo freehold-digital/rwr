@@ -243,7 +243,7 @@ func processDconf(blueprintDir string, config types.Configuration, initConfig *t
 
 	if config.RunOnce {
 		log.Debugf("RunOnce Set: Write Bootstrap File %s", bootstrapFile)
-		if err := os.WriteFile(bootstrapFile, []byte{}, 0644); err != nil { // #nosec G306 -- TODO(levi): write 0600 instead; the marker is currently world-readable
+		if err := os.WriteFile(bootstrapFile, []byte{}, 0644); err != nil { // #nosec G306 -- TODO(levi): write 0600. The marker is world-readable.
 			return fmt.Errorf("failed to create dconf bootstrap file: %w", err)
 		}
 	}

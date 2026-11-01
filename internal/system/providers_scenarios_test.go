@@ -29,9 +29,7 @@ func TestPackageManagerDetectionScenarios(t *testing.T) {
 			t.Log("Successfully created scenario with no package managers")
 			t.Log("This would trigger the error in ProcessPackages in environments without package managers")
 		} else {
-			// If enhanced path searching still finds packages, that's actually good
-			t.Logf("Enhanced path searching found %d providers even with restricted PATH", len(available))
-			t.Log("This indicates the enhanced binary detection is working correctly")
+			t.Logf("FindTool found %d providers with the restricted PATH", len(available))
 		}
 	})
 }
@@ -97,7 +95,7 @@ func TestProviderDetectionRobustness(t *testing.T) {
 	})
 }
 
-// TestDebugLoggingFunctionality tests that debug logging doesn't break functionality.
+// TestDebugLoggingFunctionality checks that debug logging does not panic.
 func TestDebugLoggingFunctionality(t *testing.T) {
 	t.Run("DebugLoggingEnabled", func(t *testing.T) {
 		// This test ensures our debug logging additions don't cause issues

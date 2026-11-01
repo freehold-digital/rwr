@@ -53,7 +53,6 @@ func ProcessPackageManagers(packageManagers []types.PackageManagerInfo, osInfo *
 		}
 	}
 
-	// Process each package manager
 	for _, pm := range packageManagers {
 		log.Debugf("Processing package manager: %s (action: %s)", pm.Name, pm.Action)
 		// The definition-level lookup, not GetProvider: GetProvider reports a
@@ -66,8 +65,7 @@ func ProcessPackageManagers(packageManagers []types.PackageManagerInfo, osInfo *
 			return fmt.Errorf("no provider definition for package manager %s", pm.Name)
 		}
 
-		// Skip the whole provider run once its detection says it is already
-		// present; every action against it would repeat work that succeeded.
+		// An install whose binary is already present has nothing left to do.
 		if pm.Action == "install" && system.FindTool(provider.Detection.Binary).Exists {
 			log.Infof("%s is already installed", pm.Name)
 			continue

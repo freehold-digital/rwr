@@ -447,9 +447,8 @@ func loadConfig(app *AppConfig) error {
 	return nil
 }
 
-// Execute runs the root command and handles any errors that occur during execution.
-// This is the main entry point for the CLI application and should be called from main.
-// It exits with status code 1 if an error occurs.
+// Execute runs the root command.
+// main calls it. It exits 1 when the command fails.
 func Execute() {
 	// rwr had no signal handling at all: ctrl-c reached a run that installs
 	// software as root and did nothing, because under the dashboard the tty is

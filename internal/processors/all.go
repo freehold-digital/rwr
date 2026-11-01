@@ -131,7 +131,6 @@ func All(initConfig *types.InitConfig, osInfo *types.OSInfo, runOrder []string) 
 		return err
 	}
 
-	// Get the blueprint file order
 	fileOrder := preflight.FileOrder
 
 	// Run the bootstrap processor first if it exists.

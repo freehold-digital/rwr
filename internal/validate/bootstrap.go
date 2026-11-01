@@ -16,17 +16,14 @@ func ValidateBootstrap(bootstrap types.BootstrapData, blueprintFile string, resu
 		AddIssue(results, types.ValidationError, err.Error(), blueprintFile, 0, "Use a named package manager with install or remove action")
 	}
 	ValidateScripts(bootstrap.Scripts, blueprintFile, results)
-	// Validate packages
 	if bootstrap.Packages != nil {
 		ValidatePackages(bootstrap.Packages, blueprintFile, results)
 	}
 
-	// Validate files
 	if bootstrap.Files != nil {
 		ValidateFiles(bootstrap.Files, blueprintFile, results)
 	}
 
-	// Validate directories
 	if bootstrap.Directories != nil {
 		for i, dir := range bootstrap.Directories {
 			if dir.Name == "" {
@@ -38,22 +35,18 @@ func ValidateBootstrap(bootstrap types.BootstrapData, blueprintFile string, resu
 		}
 	}
 
-	// Validate git repositories
 	if bootstrap.Git != nil {
 		ValidateGitRepositories(bootstrap.Git, blueprintFile, results)
 	}
 
-	// Validate SSH keys
 	if bootstrap.SSHKeys != nil {
 		ValidateSSHKeys(bootstrap.SSHKeys, blueprintFile, results)
 	}
 
-	// Validate services
 	if bootstrap.Services != nil {
 		ValidateServices(bootstrap.Services, blueprintFile, results)
 	}
 
-	// Validate groups
 	if bootstrap.Groups != nil {
 		for i, group := range bootstrap.Groups {
 			if group.Name == "" {
@@ -62,7 +55,6 @@ func ValidateBootstrap(bootstrap types.BootstrapData, blueprintFile string, resu
 		}
 	}
 
-	// Validate users
 	if bootstrap.Users != nil {
 		ValidateUsers(bootstrap.Users, blueprintFile, results)
 	}

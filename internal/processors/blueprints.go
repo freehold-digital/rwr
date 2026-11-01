@@ -62,9 +62,8 @@ func GetBlueprints(initConfig *types.InitConfig) (string, error) {
 
 		_, err := git.PlainOpen(gitOpts.Target)
 		if err != nil {
-			// Repository doesn't exist or was removed - clone it
 			log.Debugf("Cloning blueprint repository to %s", gitOpts.Target)
-			if err := os.MkdirAll(filepath.Dir(gitOpts.Target), 0755); err != nil { // #nosec G301 -- parent of a blueprint-named clone target; 0755 so the checkout stays world-readable, never world-writable (matches helpers/git.go)
+			if err := os.MkdirAll(filepath.Dir(gitOpts.Target), 0755); err != nil { // #nosec G301 -- parent of the clone target; 0755 matches helpers/git.go
 				return "", fmt.Errorf("error creating parent directory: %v", err)
 			}
 			err = helpers.HandleGitClone(*gitOpts, initConfig)

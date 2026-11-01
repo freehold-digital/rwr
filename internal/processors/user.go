@@ -43,7 +43,6 @@ func ProcessUsers(blueprintData []byte, blueprintDir string, format string, init
 	var usersData types.UsersData
 	var err error
 
-	// Unmarshal the blueprint data
 	err = helpers.DecodeBlueprintInto(blueprintData, format, types.BlueprintTypeUsers,
 		helpers.TreeSchemaVersion(initConfig), &usersData)
 	if err != nil {
@@ -51,7 +50,6 @@ func ProcessUsers(blueprintData []byte, blueprintDir string, format string, init
 		return fmt.Errorf("error unmarshaling users blueprint: %w", err)
 	}
 
-	// Process imports and merge imported users and groups
 	allGroups, err := processGroupImports(usersData.Groups, blueprintDir, format, helpers.TreeSchemaVersion(initConfig))
 	if err != nil {
 		return fmt.Errorf("error processing group imports: %w", err)
@@ -64,12 +62,10 @@ func ProcessUsers(blueprintData []byte, blueprintDir string, format string, init
 	}
 	usersData.Users = allUsers
 
-	// Filter groups based on active profiles
 	filteredGroups := helpers.FilterByProfiles(usersData.Groups, initConfig.Variables.Flags.Profiles)
 	log.Debugf("Filtering groups: %d total, %d matching active profiles %v",
 		len(usersData.Groups), len(filteredGroups), initConfig.Variables.Flags.Profiles)
 
-	// Filter users based on active profiles
 	filteredUsers := helpers.FilterByProfiles(usersData.Users, initConfig.Variables.Flags.Profiles)
 	log.Debugf("Filtering users: %d total, %d matching active profiles %v",
 		len(usersData.Users), len(filteredUsers), initConfig.Variables.Flags.Profiles)
@@ -78,14 +74,12 @@ func ProcessUsers(blueprintData []byte, blueprintDir string, format string, init
 	// single lane, and a second tracker would reset its done/total counts.
 	track := newProgress(types.BlueprintTypeUsers)
 
-	// Process the filtered groups
 	err = processGroups(filteredGroups, initConfig, track)
 	if err != nil {
 		log.Errorf("Error processing groups: %v", err)
 		return fmt.Errorf("error processing groups: %w", err)
 	}
 
-	// Process the filtered users
 	err = processUsers(filteredUsers, initConfig, track)
 	if err != nil {
 		log.Errorf("Error processing users: %v", err)

@@ -36,8 +36,7 @@ func InitProviders() error {
 	embeddedProvs, err := LoadEmbeddedProviders()
 	if err != nil {
 		log.Errorf("Failed to load embedded providers: %v", err)
-		// An embedded-load failure is not fatal: filesystem providers can
-		// still supply everything the machine needs.
+		// Continue. Filesystem providers can still supply the definitions.
 	} else {
 		log.Debugf("Loaded %d embedded providers", len(embeddedProvs))
 		for name, provider := range embeddedProvs {
@@ -187,8 +186,7 @@ var osTokens = map[string]bool{
 //
 // A provider that names any OS token must name this one. A provider that lists
 // only distributions (pacman, apt, dnf) is not OS-specific in its declaration, so
-// the file and binary checks decide - those paths simply do not exist on the wrong
-// OS.
+// the file and binary checks decide. Those paths do not exist on the wrong OS.
 func targetsOS(provider *types.Provider, currentOS string) bool {
 	namedAnOS := false
 	for _, dist := range provider.Detection.Distributions {
@@ -251,7 +249,6 @@ func GetProvider(name string) (*types.Provider, bool) {
 
 	log.Debugf("GetProvider: Looking for provider %s", name)
 
-	// Initialize providers if needed
 	if err := InitProviders(); err != nil {
 		log.Errorf("GetProvider: Error initializing providers: %v", err)
 		return nil, false
@@ -285,8 +282,6 @@ func GetProvider(name string) (*types.Provider, bool) {
 		return nil, false
 	}
 	binPath := tool.Bin
-
-	// Provider is available
 	provider.BinPath = binPath
 	log.Debugf("GetProvider: Provider %s is available with binary at %s", name, binPath)
 	return provider, true
@@ -488,7 +483,6 @@ func LoadProviderDefinition(path string) (*types.Provider, error) {
 		provider = config.Provider
 	}
 
-	// Ensure provider name is set from the TOML
 	if provider.Name == "" {
 		log.Errorf("LoadProviderDefinition: Provider name not set in %s", path)
 		return nil, fmt.Errorf("provider name not set in %s", path)

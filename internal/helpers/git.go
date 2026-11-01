@@ -105,7 +105,6 @@ func CheckAndUpdateRemoteURL(repoPath, desiredURL string) error {
 	if !SameRepositoryURL(currentURL, desiredURL) {
 		log.Infof("Updating remote URL from %s to %s", currentURL, desiredURL)
 
-		// Remove the existing remote
 		err = repo.DeleteRemote("origin")
 		if err != nil {
 			return fmt.Errorf("error removing existing remote: %v", err)
