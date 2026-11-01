@@ -236,7 +236,6 @@ func generateSSHKey(sshKey types.SSHKey, initConfig *types.InitConfig) (string, 
 	// literally named "~" in the working directory.
 	sshPath := filepath.Join(system.ExpandPath(sshKey.Path), sshKey.Name)
 
-	// Check if the SSH key already exists
 	if _, err := os.Stat(sshPath); err == nil {
 		log.Warnf("SSH key %s already exists. Skipping generation.", sshPath)
 		return sshPath, nil
@@ -637,10 +636,8 @@ func copySSHKeyToGitHub(sshKey types.SSHKey, initConfig *types.InitConfig) error
 	case 403:
 		return fmt.Errorf("forbidden: GitHub token requires 'write:public_key' scope")
 	case 422:
-		// Parse error details
 		var ghErr githubError
 		if err := json.Unmarshal(body, &ghErr); err == nil && ghErr.Message != "" {
-			// Check if it's a duplicate key error
 			if len(ghErr.Errors) > 0 {
 				for _, e := range ghErr.Errors {
 					// The key being on the account already is the state

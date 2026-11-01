@@ -21,8 +21,9 @@ func TestGetAvailableProviders_NoPackageManagers(t *testing.T) {
 	// This should return empty map but not panic
 	providers := GetAvailableProviders()
 
-	// Note: On systems with enhanced path searching, this may still find providers
-	// The important thing is it doesn't panic and handles the case gracefully
+	// Enhanced path searching may still find system binaries despite the
+	// empty PATH. That is acceptable: the test checks no panic and graceful
+	// handling, not emptiness.
 	t.Logf("Found %d providers with empty PATH (enhanced path searching may still find system binaries)", len(providers))
 
 	// The regression test is really about ensuring no panic and graceful error handling
@@ -61,9 +62,8 @@ func TestGetAvailableProviders_WithValidBinaries(t *testing.T) {
 	// Should find providers if they exist in definitions and are compatible
 	t.Logf("Found %d providers with mock binaries", len(providers))
 
-	// The actual number depends on OS compatibility checks in provider definitions
-	// But at minimum we should not get a panic or error
-	// Note: len() never returns negative values, so this is just a structural check
+	// The actual number depends on OS compatibility checks in provider definitions.
+	// At minimum there must be no panic or error, and a non-nil result.
 	if providers == nil {
 		t.Error("Provider detection should not return nil")
 	}
@@ -115,8 +115,8 @@ func TestGetAvailableProviders_ArchLinuxSpecific(t *testing.T) {
 
 	t.Logf("Created mock Arch environment in %s", tempDir)
 
-	// Note: This is a structure test - actual file checking would require
-	// modifying the provider definitions to use test paths
+	// Structure test only: asserting file contents would require the provider
+	// definitions to point at test paths.
 }
 
 // TestPackageManagerDetectionRegression is the main regression test

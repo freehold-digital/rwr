@@ -374,7 +374,7 @@ func macAddGroups(name string, groups []string, initConfig *types.InitConfig) er
 // therefore appears in the argv of a sudo'd process, visible in `ps` to every
 // local user and recorded in sudo's syslog entry.
 //
-// TODO: feed the password to `dscl . -passwd` on stdin instead.
+// TODO(levi): feed the password to `dscl . -passwd` on stdin instead.
 // types.Command.Stdin and its RunCommand wiring exist now (this file already
 // uses them for the Linux chpasswd path below); what remains is confirming
 // dscl reads a password from stdin non-interactively on current macOS.

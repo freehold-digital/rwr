@@ -33,11 +33,11 @@ func InitProviders() error {
 
 	providers = make(map[string]*types.Provider)
 
-	// First try loading embedded providers
 	embeddedProvs, err := LoadEmbeddedProviders()
 	if err != nil {
 		log.Errorf("Failed to load embedded providers: %v", err)
-		// Don't return error here, try filesystem providers first
+		// An embedded-load failure is not fatal: filesystem providers can
+		// still supply everything the machine needs.
 	} else {
 		log.Debugf("Loaded %d embedded providers", len(embeddedProvs))
 		for name, provider := range embeddedProvs {
@@ -46,7 +46,6 @@ func InitProviders() error {
 		}
 	}
 
-	// Then try filesystem providers (these will override embedded ones)
 	providersPath, err := GetProvidersPath()
 	if err != nil {
 		log.Debugf("No filesystem providers found: %v", err)
@@ -276,7 +275,6 @@ func GetProvider(name string) (*types.Provider, bool) {
 	providersMu.Unlock()
 	log.Debugf("GetProvider: Found provider %s in loaded providers", name)
 
-	// Check if binary exists using FindTool
 	tool := FindTool(provider.Detection.Binary)
 	if !tool.Exists {
 		// Not an error: every caller asks about providers the machine may not have,

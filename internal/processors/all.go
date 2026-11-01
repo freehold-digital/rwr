@@ -109,7 +109,6 @@ func All(initConfig *types.InitConfig, osInfo *types.OSInfo, runOrder []string) 
 		log.Warnf("====================")
 	}
 
-	// First, ensure the blueprint repository is set up
 	_, err = GetBlueprints(initConfig)
 	if err != nil {
 		return fmt.Errorf("error initializing blueprints: %w", err)

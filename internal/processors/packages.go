@@ -152,7 +152,6 @@ func ProcessPackages(data []byte, packages *types.PackagesData, blueprintDir str
 		return fmt.Errorf("error initializing providers: %w", err)
 	}
 
-	// Get available providers
 	available := system.GetAvailableProviders()
 	if len(available) == 0 {
 		return fmt.Errorf("no package managers available - check debug logs for detailed provider detection information. Common issues: missing binaries in PATH, missing config files, or unsupported platform")

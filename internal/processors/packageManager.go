@@ -66,13 +66,13 @@ func ProcessPackageManagers(packageManagers []types.PackageManagerInfo, osInfo *
 			return fmt.Errorf("no provider definition for package manager %s", pm.Name)
 		}
 
-		// Check if already installed
+		// Skip the whole provider run once its detection says it is already
+		// present; every action against it would repeat work that succeeded.
 		if pm.Action == "install" && system.FindTool(provider.Detection.Binary).Exists {
 			log.Infof("%s is already installed", pm.Name)
 			continue
 		}
 
-		// Get steps based on action
 		var steps []types.ActionStep
 		switch pm.Action {
 		case "install":
@@ -83,7 +83,6 @@ func ProcessPackageManagers(packageManagers []types.PackageManagerInfo, osInfo *
 			return fmt.Errorf("unsupported package manager action: %s", pm.Action)
 		}
 
-		// Execute each step
 		for _, rawStep := range steps {
 			// Install steps historically staged at fixed, world-known /tmp
 			// names (/tmp/brew-install.sh, a git clone into /tmp/yay). Any

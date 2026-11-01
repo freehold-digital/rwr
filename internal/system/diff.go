@@ -214,7 +214,6 @@ func ShowDiffTo(writer io.Writer, source, target string) error {
 		return err
 	}
 
-	// Create a new instance of the differ
 	diff := difflib.UnifiedDiff{
 		A:        difflib.SplitLines(string(sourceContent)),
 		B:        difflib.SplitLines(string(targetContent)),

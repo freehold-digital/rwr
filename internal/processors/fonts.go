@@ -315,7 +315,6 @@ func extractFontTarball(tarballPath, destDir string, elevated bool, osInfo *type
 	}
 	defer file.Close() //nolint:errcheck
 
-	// Create a new XZ reader
 	xzReader, err := xz.NewReader(file)
 	if err != nil {
 		return 0, err

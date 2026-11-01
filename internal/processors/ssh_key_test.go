@@ -122,9 +122,9 @@ func TestRequestDeviceCode(t *testing.T) {
 		_ = oldURL
 	}()
 
-	// Note: This test verifies the request structure but uses the real URL
-	// In a production test suite, you'd use dependency injection or interfaces
-	// to make the URL configurable for testing
+	// This test verifies the request structure but uses the real URL.
+	// A production suite would use dependency injection or interfaces
+	// to make the URL configurable for testing.
 }
 
 // TestCheckAccessToken tests access token retrieval.
@@ -175,8 +175,8 @@ func TestCheckAccessToken(t *testing.T) {
 			}))
 			defer server.Close()
 
-			// Note: In production, we'd need to make the URL configurable
-			// For now, this test documents the expected behavior
+			// In production, the URL would need to be configurable.
+			// This test documents the expected behavior.
 		})
 	}
 }
@@ -219,8 +219,8 @@ func TestCopySSHKeyToGitHub_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Note: In production, we'd need to make the API URL configurable for testing
-	// This test documents the expected behavior
+	// In production, the API URL would need to be configurable for testing.
+	// This test documents the expected behavior.
 }
 
 // TestCopySSHKeyToGitHub_Errors drives the real upload against a local server.

@@ -243,7 +243,7 @@ func processDconf(blueprintDir string, config types.Configuration, initConfig *t
 
 	if config.RunOnce {
 		log.Debugf("RunOnce Set: Write Bootstrap File %s", bootstrapFile)
-		if err := os.WriteFile(bootstrapFile, []byte{}, 0644); err != nil { // #nosec G306 -- TODO: create with target mode instead of chmod-after
+		if err := os.WriteFile(bootstrapFile, []byte{}, 0644); err != nil { // #nosec G306 -- TODO(levi): create with target mode instead of chmod-after
 			return fmt.Errorf("failed to create dconf bootstrap file: %w", err)
 		}
 	}
@@ -257,7 +257,6 @@ func processGSettings(config types.Configuration) error {
 	for key, value := range config.Settings {
 		log.Debugf("Processing key: %s with value: %v", key, value)
 
-		// Check if the key is writable
 		checkCmd := exec.Command("gsettings", "writable", config.Schema, key) // #nosec G204 -- argv, not a shell string: schema/key/value are passed as discrete arguments
 		output, err := checkCmd.CombinedOutput()
 		if err != nil {

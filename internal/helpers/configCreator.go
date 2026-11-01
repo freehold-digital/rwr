@@ -16,10 +16,8 @@ import (
 func CreateDefaultConfig() error {
 	reader := bufio.NewReader(os.Stdin)
 
-	// Get the configuration directory from viper
 	configDir := viper.GetString("rwr.configdir")
 	if configDir == "" {
-		// If not set, use the default path
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return err
@@ -27,12 +25,10 @@ func CreateDefaultConfig() error {
 		configDir = filepath.Join(homeDir, ".config", "rwr")
 	}
 
-	// Create the configuration directory if it doesn't exist
 	if err := EnsureConfigDir(configDir); err != nil {
 		return err
 	}
 
-	// Set the configuration file path
 	configFilePath := filepath.Join(configDir, "config.yaml")
 	viper.SetConfigFile(configFilePath)
 
@@ -75,7 +71,7 @@ func CreateDefaultConfig() error {
 	if logLevelInput != "" {
 		viper.Set("log.level", logLevelInput)
 	} else {
-		viper.Set("log.level", defaultLogLevel) // Set to default if no input is provided
+		viper.Set("log.level", defaultLogLevel)
 	}
 
 	// Prompt for Repository Configuration

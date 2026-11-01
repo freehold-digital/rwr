@@ -110,7 +110,6 @@ func runScript(script types.Script, osInfo *types.OSInfo, initConfig *types.Init
 
 	log.Debugf("Running script: %s", script.Name)
 
-	// Set default executor if not specified
 	if script.Exec == "" {
 		switch osInfo.System.OS {
 		case "linux", "darwin":
@@ -217,10 +216,7 @@ func runScript(script types.Script, osInfo *types.OSInfo, initConfig *types.Init
 		scriptCmd.Args = append(scriptCmd.Args, script.Args...)
 	}
 
-	// Set the log name
 	scriptCmd.LogName = script.Log
-
-	// Set the elevated flag
 	scriptCmd.Elevated = script.Elevated
 
 	// buildCommand checks Elevated first, so asking for both silently ignored one
